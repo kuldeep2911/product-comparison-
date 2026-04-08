@@ -62,17 +62,32 @@ def generate_spec_answer(user_question: str, products: list[dict[str, Any]], fea
     for p in products:
         pid = p.get("id")
         features = feature_data.get(pid, {})
-        feature_str = ", ".join([f"{k}: {v}" for k, v in features.items()])
-        product_info.append(f"- {p.get('brand', '')} {p.get('name', '')}: {feature_str}")
+        if features:
+            # Format each spec on its own line for clarity
+            spec_lines = "\n    ".join([
+                f"{k}: {v}" for k, v in features.items()
+                if v is not None and k not in ("brand", "name")
+            ])
+            product_info.append(
+                f"▸ {p.get('brand', '')} {p.get('name', '')}:\n    {spec_lines}"
+            )
+        else:
+            product_info.append(f"▸ {p.get('brand', '')} {p.get('name', '')} (no detailed specs available)")
+
+    products_block = "\n\n".join(product_info) if product_info else "No product data available."
 
     prompt = f"""User question: "{user_question}"
 
-Products and their relevant specs:
-{chr(10).join(product_info)}
+You are comparing ONLY these products (do not mention any other phones):
 
-Answer the user's question about these products based on the specs provided.
-Be specific, mention numbers, and give a clear recommendation.
-Keep the answer to 2-4 sentences."""
+{products_block}
+
+Based on the specs above, answer the user's question directly and confidently.
+- If asking for an overall recommendation, pick one product and explain why using specific numbers from the specs.
+- If asking about a specific feature (camera, battery, etc.), compare the relevant numbers and state which is better.
+- Be specific, cite actual numbers, and give a clear recommendation.
+- Keep the answer to 3-5 sentences.
+- Do NOT say you lack information — the specs are provided above."""
 
     return _call_llm(prompt)
 

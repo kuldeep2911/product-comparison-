@@ -42,8 +42,23 @@ def handle_message(db: Session, session_id: str, user_message: str) -> dict:
     interpreted = interpret_query(user_message, context_dict)
     logger.info(f"Interpreted: mode={interpreted.mode}, intent={interpreted.intent}, products={interpreted.product_names}")
 
-    # Route to handler
-    if interpreted.intent == "compare" and interpreted.product_names:
+    # --- Context-aware intent locking ---
+    # If the session is in compare_specific mode and already has selected products,
+    # any follow-up (including ones that LOOK like recommend/general) must remain
+    # scoped to those products. This prevents the LLM from querying the full catalog.
+    session = chat_service.get_session(db, session_id)
+    is_compare_session = session and session.mode == "compare_specific"
+    has_selected_products = bool(context_dict.get("selected_products"))
+
+    if is_compare_session and has_selected_products:
+        # Only allow a new comparison if the user explicitly names 2+ products
+        if interpreted.intent == "compare" and len(interpreted.product_names) >= 2:
+            result = _handle_comparison(db, session_id, interpreted, user_message)
+        else:
+            # Everything else (recommend, general, spec_question, etc.) stays
+            # scoped to the already-selected products
+            result = _handle_spec_question(db, session_id, interpreted, user_message, context_dict)
+    elif interpreted.intent == "compare" and interpreted.product_names:
         result = _handle_comparison(db, session_id, interpreted, user_message)
     elif interpreted.intent == "recommend":
         result = _handle_recommendation(db, session_id, interpreted, user_message)
@@ -242,21 +257,38 @@ def _handle_spec_question(db: Session, session_id: str, interpreted: Interpreted
             "mode": context.get("mode", "compare_specific"),
         }
 
+    from services.comparison_service import get_product_specs
+
     # Determine which features to look up based on the question
     feature_keys = _extract_feature_keys(user_message)
 
-    # Get feature data for the products
+    # Get feature data - if no specific keys, fetch all available features
     feature_data = get_product_feature_summary(db, product_ids, feature_keys if feature_keys else None)
 
-    # Get basic product info
-    products_info = search_products_by_name(db, [])  # We need info by ID
-    # Fetch product info directly
-    from services.comparison_service import get_product_specs
+    # Fetch full product info for each selected product
     products = []
     for pid in product_ids[:5]:
         spec = get_product_specs(db, pid)
         if spec:
             products.append(spec["product"])
+
+    # If feature_data is sparse (open-ended question), build richer context from product specs
+    if not feature_keys or not any(feature_data.values()):
+        enriched_feature_data: dict = {}
+        for pid in product_ids[:5]:
+            spec = get_product_specs(db, pid)
+            if spec:
+                # Flatten sections[].fields[].{name, value} into a flat dict
+                flat: dict = {
+                    "brand": spec["product"].get("brand", ""),
+                    "name": spec["product"].get("name", ""),
+                }
+                for section in spec.get("sections", []):
+                    for field in section.get("fields", []):
+                        if field.get("value") is not None:
+                            flat[field["name"]] = field["value"]
+                enriched_feature_data[pid] = flat
+        feature_data = enriched_feature_data
 
     # Generate answer
     answer = generate_spec_answer(user_message, products, feature_data)

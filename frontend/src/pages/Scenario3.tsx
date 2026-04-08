@@ -61,7 +61,7 @@ const Scenario3 = () => {
           setSessionId(existingSessionId);
           const cats = await getCategories();
           setCategories(cats);
-          
+
           let loadedMsgs: ChatMessage[] = [];
           for (const m of history.messages) {
             if (m.role === "user") {
@@ -230,7 +230,7 @@ const Scenario3 = () => {
         setSessionId(session.session_id);
         setSelectedCategory(null);
         setCurrentProducts([]);
-      } catch {}
+      } catch { }
       addMessages([{ id: nextId(), role: "user", content: "Start over" }]);
       await delay(300);
       if (categories.length > 0) {
@@ -276,11 +276,10 @@ const Scenario3 = () => {
                 <button
                   key={cat.id}
                   onClick={() => handleCategorySelect(cat)}
-                  className={`p-2 px-4 rounded-lg text-sm font-medium transition-colors border-2 ${
-                    selectedCategory === cat.name
+                  className={`p-2 px-4 rounded-lg text-sm font-medium transition-colors border-2 ${selectedCategory === cat.name
                       ? "border-blue-500 bg-blue-50 text-blue-700"
                       : "border-transparent hover:bg-blue-50 text-gray-700"
-                  }`}
+                    }`}
                 >
                   {cat.name}
                 </button>
@@ -432,17 +431,15 @@ const Scenario3 = () => {
               onKeyDown={(e) => e.key === "Enter" && handleSend()}
               placeholder={inputActive ? "Type your message..." : loading ? "Processing..." : "Select an option above"}
               disabled={!inputActive || loading}
-              className={`flex-1 rounded-full px-5 py-3 text-sm outline-none border-none shadow-sm transition-colors ${
-                inputActive && !loading ? "bg-white" : "bg-gray-200 text-gray-400 cursor-not-allowed"
-              }`}
+              className={`flex-1 rounded-full px-5 py-3 text-sm outline-none border-none shadow-sm transition-colors ${inputActive && !loading ? "bg-white" : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                }`}
               style={{ color: inputActive ? NAVY : undefined }}
             />
             <button
               onClick={handleSend}
               disabled={!inputActive || !inputValue.trim() || loading}
-              className={`rounded-full p-3 transition-colors ${
-                inputActive && inputValue.trim() && !loading ? "text-white" : "bg-gray-300 text-gray-500 cursor-not-allowed"
-              }`}
+              className={`rounded-full p-3 transition-colors ${inputActive && inputValue.trim() && !loading ? "text-white" : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                }`}
               style={inputActive && inputValue.trim() && !loading ? { backgroundColor: NAVY } : undefined}
             >
               {loading ? <Loader2 className="animate-spin" size={18} /> : <ArrowUp size={18} />}

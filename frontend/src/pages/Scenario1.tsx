@@ -27,6 +27,9 @@ const Scenario1 = () => {
   const [loading, setLoading] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [currentProductIds, setCurrentProductIds] = useState<number[]>([]);
+  const [currentProductNames, setCurrentProductNames] = useState<string[]>([]);
+  // Replace mode: tracks which product is being swapped + the remaining ones
+  const [replaceMode, setReplaceMode] = useState<{ replacing: string; remaining: string[] } | null>(null);
   const [expandedTables, setExpandedTables] = useState<Record<string, boolean>>({});
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -55,7 +58,7 @@ const Scenario1 = () => {
         try {
           const history = await getHistory(existingSessionId);
           setSessionId(existingSessionId);
-          
+
           let loadedMsgs: ChatMessage[] = [];
           for (const m of history.messages) {
             if (m.role === "user") {
@@ -132,6 +135,8 @@ const Scenario1 = () => {
       if (response.product_ids) {
         setCurrentProductIds(response.product_ids);
       }
+      // Also store product names for replace-mode message construction
+      setCurrentProductNames(productNames);
     }
 
     // Recommendations (if any)
@@ -147,16 +152,28 @@ const Scenario1 = () => {
 
   const handleSend = async () => {
     if (!inputValue.trim() || !inputActive || !sessionId) return;
-    const text = inputValue.trim();
+    const rawText = inputValue.trim();
     setInputValue("");
     setInputActive(false);
     setLoading(true);
 
-    addMessages([{ id: nextId(), role: "user", content: text }]);
+    // If in replace mode, build a full comparison message so the backend
+    // always receives 2+ product names (root fix for 'only 1 product found' bug)
+    let sendText = rawText;
+    let displayText = rawText;
+    if (replaceMode) {
+      const remaining = replaceMode.remaining;
+      const allProducts = [rawText, ...remaining];
+      sendText = `Compare ${allProducts.join(" and ")}`;
+      displayText = rawText; // Show just the new name to the user
+      setReplaceMode(null);
+    }
+
+    addMessages([{ id: nextId(), role: "user", content: displayText }]);
     addMessages([{ id: nextId(), role: "ai", content: "", type: "loading" }]);
 
     try {
-      const response = await sendMessage(sessionId, text);
+      const response = await sendMessage(sessionId, sendText);
       // Remove loading message and add real response
       setMessages(prev => prev.filter(m => m.type !== "loading"));
       const responseMessages = processApiResponse(response);
@@ -187,14 +204,19 @@ const Scenario1 = () => {
         const session = await startSession("compare_specific");
         setSessionId(session.session_id);
         setCurrentProductIds([]);
+        setCurrentProductNames([]);
+        setReplaceMode(null);
       } catch { }
       addMessages([{ id: nextId(), role: "ai", content: "Sure! Which products would you like to compare now?" }]);
       setInputActive(true);
     } else if (action.startsWith("replace-")) {
       const productName = action.replace("replace-", "");
+      // Remaining = all current product names except the one being replaced
+      const remaining = currentProductNames.filter(n => n !== productName);
+      setReplaceMode({ replacing: productName, remaining });
       addMessages([{ id: nextId(), role: "user", content: `Replace ${productName}` }]);
       await delay(300);
-      addMessages([{ id: nextId(), role: "ai", content: `Which product should replace ${productName}? Type the new product name along with the others you'd like to compare.` }]);
+      addMessages([{ id: nextId(), role: "ai", content: `Which product should replace ${productName}? Just type the new product name.` }]);
       setInputActive(true);
     }
   };
@@ -340,7 +362,7 @@ const Scenario1 = () => {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSend()}
-              placeholder={inputActive ? "Type product names to compare..." : loading ? "Processing..." : "Select an option above"}
+              placeholder={replaceMode ? `Type the name of the phone to replace ${replaceMode.replacing}...` : inputActive ? "Type product names to compare..." : loading ? "Processing..." : "Select an option above"}
               disabled={!inputActive || loading}
               className={`flex-1 rounded-full px-5 py-3 text-sm outline-none border-none shadow-sm transition-colors ${inputActive && !loading ? "bg-white" : "bg-gray-200 text-gray-400 cursor-not-allowed"
                 }`}

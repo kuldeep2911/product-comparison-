@@ -50,7 +50,7 @@ const Scenario2 = () => {
         try {
           const history = await getHistory(existingSessionId);
           setSessionId(existingSessionId);
-          
+
           let loadedMsgs: ChatMessage[] = [];
           for (const m of history.messages) {
             if (m.role === "user") {
@@ -210,7 +210,7 @@ const Scenario2 = () => {
       try {
         const session = await startSession("purchase_advice");
         setSessionId(session.session_id);
-      } catch {}
+      } catch { }
       addMessages([{ id: nextId(), role: "user", content: "Start a new search" }]);
       await delay(300);
       addMessages([{ id: nextId(), role: "ai", content: "Sure! What are you looking for?" }]);
@@ -316,17 +316,15 @@ const Scenario2 = () => {
               onKeyDown={(e) => e.key === "Enter" && handleSend()}
               placeholder={inputActive ? "Describe what you're looking for..." : loading ? "Processing..." : "Select an option above"}
               disabled={!inputActive || loading}
-              className={`flex-1 rounded-full px-5 py-3 text-sm outline-none border-none shadow-sm transition-colors ${
-                inputActive && !loading ? "bg-white" : "bg-gray-200 text-gray-400 cursor-not-allowed"
-              }`}
+              className={`flex-1 rounded-full px-5 py-3 text-sm outline-none border-none shadow-sm transition-colors ${inputActive && !loading ? "bg-white" : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                }`}
               style={{ color: inputActive ? NAVY : undefined }}
             />
             <button
               onClick={handleSend}
               disabled={!inputActive || !inputValue.trim() || loading}
-              className={`rounded-full p-3 transition-colors ${
-                inputActive && inputValue.trim() && !loading ? "text-white" : "bg-gray-300 text-gray-500 cursor-not-allowed"
-              }`}
+              className={`rounded-full p-3 transition-colors ${inputActive && inputValue.trim() && !loading ? "text-white" : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                }`}
               style={inputActive && inputValue.trim() && !loading ? { backgroundColor: NAVY } : undefined}
             >
               {loading ? <Loader2 className="animate-spin" size={18} /> : <ArrowUp size={18} />}
