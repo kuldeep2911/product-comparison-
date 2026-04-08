@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 205 70% 95%;
+    --foreground: 220 40% 20%;
+    --primary: 220 40% 20%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 60% 90%;
+    --secondary-foreground: 220 40% 20%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 220 40% 20%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 220 40% 20%;
+    --radius: 0.5rem;
+    --card: 0 0% 100%;
+    --card-foreground: 220 40% 20%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 40% 20%;
+    --sidebar-bg: 220 40% 20%;
+    --sidebar-foreground: 0 0% 100%;
+    --gradient-from: #E8F4FD;
+    --gradient-to: #C5DFF8;
+    --navy: #1a2744;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply text-foreground;
+    margin: 0;
+  }
+}
+
+/* ── Fade-in animation for every new chat element ── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.chat-element {
+  animation: fadeIn 300ms ease forwards;
+}
+
+/* ── Mobile: sidebar becomes a top bar ── */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    min-width: unset !important;
+    height: auto !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 12px 20px !important;
+    z-index: 50;
+  }
+
+  .main-content {
+    margin-left: 0 !important;
+    padding-top: 64px !important; /* leave room for top bar */
+  }
+}

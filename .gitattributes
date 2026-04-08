@@ -1,0 +1,31 @@
+# Normalize line endings for all text files to LF in the repository
+* text=auto eol=lf
+
+# Explicitly declare text files - these will use LF in repo and on checkout
+*.ts    text eol=lf
+*.tsx   text eol=lf
+*.js    text eol=lf
+*.jsx   text eol=lf
+*.json  text eol=lf
+*.css   text eol=lf
+*.html  text eol=lf
+*.md    text eol=lf
+*.yml   text eol=lf
+*.yaml  text eol=lf
+*.env   text eol=lf
+*.py    text eol=lf
+*.txt   text eol=lf
+*.sh    text eol=lf
+
+# Binary files - no line ending conversion
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.woff  binary
+*.woff2 binary
+*.ttf   binary
+*.eot   binary
+*.otf   binary
+*.svg   binary
