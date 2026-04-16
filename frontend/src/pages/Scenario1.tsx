@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowUp, Loader2 } from "lucide-react";
 import Layout from "@/components/Layout";
@@ -226,7 +226,7 @@ const Scenario1 = () => {
     if (msg.type === "loading") {
       return (
         <div key={msg.id} className="chat-element flex justify-start">
-          <div className="bg-white rounded-2xl px-5 py-3 shadow-sm flex items-center gap-2" style={{ color: "#1a2744" }}>
+          <div className="ai-bubble flex items-center gap-2" style={{ color: "#1a2744" }}>
             <Loader2 className="animate-spin" size={16} />
             <span className="text-sm">Thinking...</span>
           </div>
@@ -237,7 +237,7 @@ const Scenario1 = () => {
     if (msg.type === "error") {
       return (
         <div key={msg.id} className="chat-element flex justify-start">
-          <div className="rounded-2xl px-5 py-3 max-w-sm shadow-sm" style={{ backgroundColor: "#FEE2E2", color: "#991B1B" }}>
+          <div className="ai-bubble" style={{ backgroundColor: "#FEE2E2", color: "#991B1B" }}>
             <p className="text-sm">{msg.content}</p>
           </div>
         </div>
@@ -259,47 +259,137 @@ const Scenario1 = () => {
         }
       }
 
-      // Show up to 15 key fields by default unless expanded
+      // Important feature keywords to show by default
+      const importantKeywords = [
+        "ram", "memory", "processor", "cpu", "chipset", "battery",
+        "display", "screen", "resolution", "camera", "storage",
+        "rom", "os", "operating system", "android", "ios",
+        "charging", "refresh rate", "network", "5g", "price",
+      ];
+
+      const isImportant = (displayName: string) => {
+        const lower = displayName.toLowerCase();
+        return importantKeywords.some((kw) => lower.includes(kw));
+      };
+
+      const importantFields = allFields.filter((f) => isImportant(f.displayName));
+      // Fallback: if filter yields nothing meaningful, show first 8
+      const defaultFields = importantFields.length > 0 ? importantFields : allFields.slice(0, 8);
+
       const isExpanded = !!expandedTables[msg.id];
-      const displayFields = isExpanded ? allFields : allFields.slice(0, 15);
+      const displayFields = isExpanded ? allFields : defaultFields;
+
+      // Helper: determine which product has the better spec value
+      const lowerIsBetterKeywords = [
+        "price", "weight", "thickness", "nm", "power", "draw", "dischar"
+      ];
+      const getBetterIndex = (fieldName: string, vals: Record<number, string | null>): number | null => {
+        const productValues = products.map(p => vals[p.id]);
+        if (productValues.every(v => !v || v === "—")) return null;
+        // Extract the first numeric value from each cell
+        const nums = productValues.map(v => {
+          if (!v) return null;
+          const match = v.replace(/,/g, "").match(/[\d]+(?:\.\d+)?/);
+          return match ? parseFloat(match[0]) : null;
+        });
+        // Only compare if at least two have valid numbers
+        const validNums = nums.filter(n => n !== null);
+        if (validNums.length < 2) return null;
+        // Check if all are the same
+        if (new Set(validNums).size === 1) return null;
+        const lower = fieldName.toLowerCase();
+        const isLowerBetter = lowerIsBetterKeywords.some(k => lower.includes(k));
+        let bestIdx: number | null = null;
+        let bestVal: number | null = null;
+        for (let i = 0; i < products.length; i++) {
+          const n = nums[i];
+          if (n === null) continue;
+          if (bestVal === null) { bestIdx = i; bestVal = n; continue; }
+          if (isLowerBetter ? n < bestVal : n > bestVal) { bestIdx = i; bestVal = n; }
+        }
+        return bestIdx;
+      };
+
+      // Group fields by section for the new UI layout
+      const groupedFields: { section: string; fields: typeof displayFields }[] = [];
+      for (const field of displayFields) {
+        let group = groupedFields.find((g) => g.section === field.section);
+        if (!group) {
+          group = { section: field.section, fields: [] };
+          groupedFields.push(group);
+        }
+        group.fields.push(field);
+      }
 
       return (
         <div key={msg.id} className="chat-element w-full overflow-x-auto">
-          <div className="bg-white rounded-xl overflow-hidden shadow-sm min-w-[400px]">
-            <div className="grid" style={{ gridTemplateColumns: `160px repeat(${products.length}, 1fr)` }}>
-              <div className="px-3 py-3" style={{ backgroundColor: "#1a2744" }} />
-              {products.map((p) => (
-                <div key={p.id} className="px-3 py-3 text-center" style={{ backgroundColor: "#1a2744" }}>
-                  <span className="text-white text-xs font-semibold">{p.brand} {p.name}</span>
-                </div>
-              ))}
-            </div>
-            {displayFields.map((field, rowIdx) => (
-              <div
-                key={`${field.section}-${field.name}`}
-                className="grid"
-                style={{
-                  gridTemplateColumns: `160px repeat(${products.length}, 1fr)`,
-                  backgroundColor: rowIdx % 2 === 0 ? "white" : "#F0F4FF",
-                }}
-              >
-                <div className="px-3 py-2.5 text-xs font-semibold" style={{ color: "#1a2744" }}>
-                  {field.displayName}
-                </div>
-                {products.map((p) => (
-                  <div key={p.id} className="px-3 py-2.5 text-xs text-center text-gray-600">
-                    {field.values[p.id] || "—"}
-                  </div>
+          <div className="bg-white rounded-xl overflow-hidden shadow-sm min-w-[600px] border border-gray-200">
+            <table className="w-full border-collapse text-xs text-left">
+              <thead>
+                <tr>
+                  <th className="px-3 py-3 w-[100px]" style={{ backgroundColor: "#1a2744" }}></th>
+                  <th className="px-3 py-3 w-[120px]" style={{ backgroundColor: "#1a2744" }}></th>
+                  {products.map((p) => (
+                    <th key={p.id} className="px-3 py-3 text-center text-white" style={{ backgroundColor: "#1a2744" }}>
+                      {p.brand} {p.name}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {groupedFields.map((group) => (
+                  <React.Fragment key={group.section}>
+                    {group.fields.map((field, fIdx) => (
+                      <tr 
+                        key={`${field.section}-${field.name}`}
+                        style={{ backgroundColor: fIdx % 2 === 0 ? "white" : "#F8FAFC" }}
+                        className="border-b border-gray-200 last:border-b-0"
+                      >
+                        {fIdx === 0 && (
+                          <td 
+                            rowSpan={group.fields.length}
+                            className="px-3 py-2.5 font-bold uppercase align-top border-r border-gray-200"
+                            style={{ color: "#D11A2A" }}
+                          >
+                            {group.section}
+                          </td>
+                        )}
+                        <td className="px-3 py-2.5 font-semibold align-top border-r border-gray-200" style={{ color: "#1a2744" }}>
+                          {field.displayName}
+                        </td>
+                        {products.map((p, pIdx) => {
+                          const winnerIdx = getBetterIndex(field.displayName, field.values);
+                          const isWinner = winnerIdx === pIdx;
+                          return (
+                            <td
+                              key={p.id}
+                              className="px-3 py-2.5 text-center align-top border-r border-gray-200 last:border-r-0"
+                              style={{
+                                backgroundColor: isWinner ? "#dcfce7" : undefined,
+                                color: isWinner ? "#166534" : "#4B5563",
+                                fontWeight: isWinner ? 600 : undefined,
+                              }}
+                            >
+                              {field.values[p.id] || "—"}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </React.Fragment>
                 ))}
-              </div>
-            ))}
-            {allFields.length > 15 && (
+              </tbody>
+            </table>
+            
+            {allFields.length > defaultFields.length && (
               <button
                 onClick={() => toggleTable(msg.id)}
-                className="w-full px-3 py-3 text-xs text-center font-medium hover:bg-gray-100 transition-colors"
+                className="w-full px-3 py-3 text-xs text-center font-medium hover:bg-gray-50 transition-colors"
                 style={{ color: "#1a2744", borderTop: "1px solid #E5E7EB" }}
               >
-                {isExpanded ? "Show less" : `Show all ${allFields.length} specifications`}
+                {isExpanded
+                  ? "▲ Show important features only"
+                  : `▼ Show all ${allFields.length} features`}
               </button>
             )}
           </div>
@@ -329,7 +419,7 @@ const Scenario1 = () => {
     if (msg.role === "ai") {
       return (
         <div key={msg.id} className="chat-element flex justify-start">
-          <div className="bg-white rounded-2xl px-5 py-3 max-w-lg shadow-sm" style={{ color: "#1a2744" }}>
+          <div className="ai-bubble" style={{ color: "#1a2744" }}>
             <p className="text-sm whitespace-pre-line">{msg.content}</p>
           </div>
         </div>
@@ -338,7 +428,7 @@ const Scenario1 = () => {
 
     return (
       <div key={msg.id} className="chat-element flex justify-end">
-        <div className="rounded-2xl px-5 py-3 max-w-sm text-white" style={{ backgroundColor: "#1a2744" }}>
+        <div className="user-bubble">
           <p className="text-sm">{msg.content}</p>
         </div>
       </div>

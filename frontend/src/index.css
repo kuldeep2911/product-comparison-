@@ -1,6 +1,6 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
 
 @layer base {
   :root {
@@ -34,22 +34,99 @@
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: hsl(var(--border));
   }
+
   body {
-    @apply text-foreground;
+    color: hsl(var(--foreground));
     margin: 0;
   }
 }
 
 /* ── Fade-in animation for every new chat element ── */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .chat-element {
   animation: fadeIn 300ms ease forwards;
+}
+
+/* ── iOS-style speech bubbles ── */
+.ai-bubble {
+  position: relative;
+  background-color: #ffffff;
+  color: #1a2744;
+  padding: 10px 20px;
+  max-width: 480px;
+  border-radius: 25px;
+  font-size: 0.875rem;
+  line-height: 24px;
+  word-wrap: break-word;
+}
+
+.ai-bubble::before, .ai-bubble::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  height: 25px;
+}
+
+.ai-bubble::before {
+  left: -7px;
+  width: 20px;
+  background-color: #ffffff;
+  border-bottom-right-radius: 16px 14px;
+}
+
+.ai-bubble::after {
+  left: -26px;
+  width: 26px;
+  background: linear-gradient(180deg, var(--gradient-from), var(--gradient-to));
+  background-attachment: fixed;
+  border-bottom-right-radius: 10px;
+}
+
+.user-bubble {
+  position: relative;
+  background-color: #1a2744;
+  color: #ffffff;
+  padding: 10px 20px;
+  max-width: 340px;
+  border-radius: 25px;
+  font-size: 0.875rem;
+  line-height: 24px;
+  word-wrap: break-word;
+}
+
+.user-bubble::before, .user-bubble::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  height: 25px;
+}
+
+.user-bubble::before {
+  right: -7px;
+  width: 20px;
+  background-color: #1a2744;
+  border-bottom-left-radius: 16px 14px;
+}
+
+.user-bubble::after {
+  right: -26px;
+  width: 26px;
+  background: linear-gradient(180deg, var(--gradient-from), var(--gradient-to));
+  background-attachment: fixed;
+  border-bottom-left-radius: 10px;
 }
 
 /* ── Mobile: sidebar becomes a top bar ── */
@@ -70,6 +147,7 @@
 
   .main-content {
     margin-left: 0 !important;
-    padding-top: 64px !important; /* leave room for top bar */
+    padding-top: 64px !important;
+    /* leave room for top bar */
   }
 }

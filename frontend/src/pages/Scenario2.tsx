@@ -222,7 +222,7 @@ const Scenario2 = () => {
     if (msg.type === "loading") {
       return (
         <div key={msg.id} className="chat-element flex justify-start">
-          <div className="bg-white rounded-2xl px-5 py-3 shadow-sm flex items-center gap-2" style={{ color: NAVY }}>
+          <div className="ai-bubble flex items-center gap-2" style={{ color: NAVY }}>
             <Loader2 className="animate-spin" size={16} />
             <span className="text-sm">Finding the best products for you...</span>
           </div>
@@ -233,7 +233,7 @@ const Scenario2 = () => {
     if (msg.type === "error") {
       return (
         <div key={msg.id} className="chat-element flex justify-start">
-          <div className="rounded-2xl px-5 py-3 max-w-sm shadow-sm" style={{ backgroundColor: "#FEE2E2", color: "#991B1B" }}>
+          <div className="ai-bubble" style={{ backgroundColor: "#FEE2E2", color: "#991B1B" }}>
             <p className="text-sm">{msg.content}</p>
           </div>
         </div>
@@ -280,7 +280,7 @@ const Scenario2 = () => {
     if (msg.role === "ai") {
       return (
         <div key={msg.id} className="chat-element flex justify-start">
-          <div className="bg-white rounded-2xl px-5 py-3 max-w-lg shadow-sm" style={{ color: NAVY }}>
+          <div className="ai-bubble" style={{ color: NAVY }}>
             <p className="text-sm whitespace-pre-line">{msg.content}</p>
           </div>
         </div>
@@ -289,7 +289,7 @@ const Scenario2 = () => {
 
     return (
       <div key={msg.id} className="chat-element flex justify-end">
-        <div className="rounded-2xl px-5 py-3 max-w-sm text-white" style={{ backgroundColor: NAVY }}>
+        <div className="user-bubble">
           <p className="text-sm">{msg.content}</p>
         </div>
       </div>
