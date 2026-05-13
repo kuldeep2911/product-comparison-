@@ -56,12 +56,45 @@ Be concise, engaging, and conversational."""
     return _call_llm(prompt)
 
 
+def generate_next_clarifying_question(user_message: str, history_text: str, known_info: str, turn: int) -> str:
+    """Generate the next single clarifying question based on history."""
+    # Determine which topic to ask about based on turn number
+    topic_guide = {
+        0: "Ask about their BUDGET — how much they are willing to spend. Keep it casual, e.g. 'What's your budget range?'",
+        1: "Ask about their PRIMARY USAGE — what they will use the device for most (e.g. taking photos, playing games, watching videos, work/productivity, social media). Use simple everyday language.",
+        2: "Ask about their BRAND or OS PREFERENCE — do they prefer any specific brand like Samsung, Apple, Xiaomi, or any operating system like Android or iOS? Or are they open to all?"
+    }
+
+    topic = topic_guide.get(turn, topic_guide[2])
+
+    prompt = f"""You are a friendly shopping assistant helping someone find the perfect product.
+
+Recent Conversation:
+{history_text}
+
+What we already know: {known_info if known_info else 'Nothing yet'}
+
+TASK: Ask exactly ONE simple question to the user.
+Topic for this question: {topic}
+
+CRITICAL RULES:
+- Use SIMPLE, everyday language that anyone can understand
+- NEVER use technical terms like: DSLR, mirrorless, OIS, aperture, refresh rate, chipset, SoC, IP rating, AMOLED, LTPO, telephoto, ultrawide, megapixel count, etc.
+- Instead of asking "what type of camera", ask "what will you mainly use the phone for"
+- Keep the question SHORT (1 sentence max)
+- Do NOT provide any recommendations yet
+- If the information for this topic is already known from the conversation, reply with exactly: READY
+
+Return ONLY the question text, nothing else."""
+    return _call_llm(prompt)
+
+
 def generate_spec_answer(user_question: str, products: list[dict[str, Any]], feature_data: dict[str, Any]) -> str:
     """Answer a specific spec question about products in the current comparison."""
     product_info = []
     for p in products:
-        pid = p.get("id")
-        features = feature_data.get(pid, {})
+        pid: int | str = p.get("id", 0)
+        features: dict[str, Any] = feature_data.get(str(pid), {})
         if features:
             # Format each spec on its own line for clarity
             spec_lines = "\n    ".join([
@@ -117,7 +150,10 @@ def _call_llm(prompt: str) -> str:
             temperature=0.7,
             max_tokens=300,
         )
-        return response.choices[0].message.content.strip()
+        content = response.choices[0].message.content
+        if content is None:
+            raise ValueError("LLM returned empty content")
+        return content.strip()
     except Exception as e:
         logger.error(f"LLM call failed: {e}")
-        return "I can help you with that! Let me look at the details."
+        return "I'm sorry, I am currently experiencing high traffic or a temporary connection issue. Please try your request again in a few moments."

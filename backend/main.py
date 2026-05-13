@@ -56,6 +56,8 @@ app.include_router(recommend_router, prefix="/api")
 
 @app.on_event("startup")
 def startup_event():
+    import services.ranking_engine as re
+    print(f"!!! LOADED RANKING ENGINE FROM: {re.__file__} !!!")
     """Create chat tables on startup if they don't exist."""
     schema_path = os.path.join(os.path.dirname(__file__), "database", "chat_schema.sql")
     try:

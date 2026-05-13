@@ -30,6 +30,8 @@ const Scenario1 = () => {
   const [currentProductNames, setCurrentProductNames] = useState<string[]>([]);
   // Replace mode: tracks which product is being swapped + the remaining ones
   const [replaceMode, setReplaceMode] = useState<{ replacing: string; remaining: string[] } | null>(null);
+  // Add mode: tracks the current ones so a new one can be added
+  const [addMode, setAddMode] = useState<{ remaining: string[] } | null>(null);
   const [expandedTables, setExpandedTables] = useState<Record<string, boolean>>({});
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -127,6 +129,7 @@ const Scenario1 = () => {
       const productNames = response.comparison_table.products.map(p => `${p.brand} ${p.name}`);
       const buttons = [
         ...productNames.map((p) => ({ label: `Replace ${p}`, action: `replace-${p}` })),
+        ...(productNames.length < 4 ? [{ label: "Add another product", action: "add-product" }] : []),
         { label: "Ask a follow-up question", action: "follow-up" },
         { label: "New comparison", action: "new" },
       ];
@@ -167,6 +170,12 @@ const Scenario1 = () => {
       sendText = `Compare ${allProducts.join(" and ")}`;
       displayText = rawText; // Show just the new name to the user
       setReplaceMode(null);
+    } else if (addMode) {
+      const remaining = addMode.remaining;
+      const allProducts = [...remaining, rawText];
+      sendText = `Compare ${allProducts.join(" and ")}`;
+      displayText = rawText; // Show just the new name to the user
+      setAddMode(null);
     }
 
     addMessages([{ id: nextId(), role: "user", content: displayText }]);
@@ -206,8 +215,15 @@ const Scenario1 = () => {
         setCurrentProductIds([]);
         setCurrentProductNames([]);
         setReplaceMode(null);
+        setAddMode(null);
       } catch { }
       addMessages([{ id: nextId(), role: "ai", content: "Sure! Which products would you like to compare now?" }]);
+      setInputActive(true);
+    } else if (action === "add-product") {
+      setAddMode({ remaining: currentProductNames });
+      addMessages([{ id: nextId(), role: "user", content: "Add another product to compare" }]);
+      await delay(300);
+      addMessages([{ id: nextId(), role: "ai", content: "Which product would you like to add to this comparison? Type its name below." }]);
       setInputActive(true);
     } else if (action.startsWith("replace-")) {
       const productName = action.replace("replace-", "");
@@ -452,7 +468,7 @@ const Scenario1 = () => {
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handleSend()}
-              placeholder={replaceMode ? `Type the name of the phone to replace ${replaceMode.replacing}...` : inputActive ? "Type product names to compare..." : loading ? "Processing..." : "Select an option above"}
+              placeholder={replaceMode ? `Type the name of the phone to replace ${replaceMode.replacing}...` : addMode ? "Type the name of the phone to add..." : inputActive ? "Type product names to compare..." : loading ? "Processing..." : "Select an option above"}
               disabled={!inputActive || loading}
               className={`flex-1 rounded-full px-5 py-3 text-sm outline-none border-none shadow-sm transition-colors ${inputActive && !loading ? "bg-white" : "bg-gray-200 text-gray-400 cursor-not-allowed"
                 }`}

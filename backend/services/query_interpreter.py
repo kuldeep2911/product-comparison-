@@ -58,8 +58,8 @@ Return a JSON object with these fields:
   "intent": "compare" | "recommend" | "category_browse" | "spec_question" | "follow_up" | "greeting",
   "product_names": ["product name 1", "product name 2"],
   "category": "mobile" | "tablet" | "watch" | null,
-  "budget": integer or null,
-  "use_case": "gaming" | "camera" | "battery" | "multimedia" | "compact" | null,
+  "budget": integer or null (ALWAYS convert to USD. If user mentions rupees, divide by 85 to get USD. E.g. 50000 rupees -> 588),
+  "use_case": "gaming" | "camera" | "battery_life" | "multimedia" | "compact" | "balanced" | "productivity" | "value_for_money" | null,
   "filters": {{"feature_key": ">value"}},
   "follow_up_type": "spec_question" | "refine_filter" | "replace_product" | "general" | null,
   "spec_question_field": "battery" | "camera" | "display" | "processor" | "ram" | "storage" | null
@@ -67,12 +67,28 @@ Return a JSON object with these fields:
 
 Rules:
 - If user mentions 2+ product names, set mode="compare_specific", intent="compare"
-- If user asks "best X phone" or mentions budget/use-case, set mode="purchase_advice", intent="recommend"
-- If user mentions a product category to browse, set mode="category_compare", intent="category_browse"
+- If user asks "best X phone", mentions budget/use-case, or is answering a question about their phone usage (e.g. "web browsing", "watching videos"), set mode="purchase_advice", intent="recommend".
+- If user asks to list/browse a broad product catalog without looking for recommendations (e.g. "show me all tablets"), set mode="category_compare", intent="category_browse". Do NOT use this for "web browsing" use-cases.
 - If there is prior context and the user asks about specs (e.g. "which has better battery?"), set mode="follow_up", intent="spec_question"
 - If user wants to refine results, set follow_up_type="refine_filter"
+- If the user says they have no preference (e.g. "no", "any", "none" for brand or OS), DO NOT add it to filters. Only add actual constraints to filters.
 - Extract product names exactly as user typed them
 - Only return raw JSON, no markdown formatting.
+
+Category detection hints:
+- Words like "phone", "mobile", "smartphone", "iphone", "galaxy", "pixel" → category = "mobile"
+- Words like "tablet", "ipad" → category = "tablet"
+- Words like "watch", "smartwatch" → category = "watch"
+
+Use case detection hints:
+- "camera", "photography", "photos", "pictures" → use_case = "camera"
+- "gaming", "games", "pubg", "genshin" → use_case = "gaming"
+- "battery", "long lasting", "battery life" → use_case = "battery_life"
+- "video", "movies", "streaming", "multimedia" → use_case = "multimedia"
+- "small", "lightweight", "compact", "pocket" → use_case = "compact"
+- "all-rounder", "balanced", "everyday", "daily use" → use_case = "balanced"
+- "work", "productivity", "office", "multitask" → use_case = "productivity"
+- "budget", "value", "affordable", "cheap" → use_case = "value_for_money"
 
 Available features for filters:
 battery_capacity, display_size, refresh_rate, ram, storage, camera_mp, charging_watts, weight
@@ -88,7 +104,10 @@ battery_capacity, display_size, refresh_rate, ram, storage, camera_mp, charging_
             temperature=0,
             max_tokens=512,
         )
-        content = response.choices[0].message.content.strip()
+        content = response.choices[0].message.content
+        if content is None:
+            raise ValueError("LLM returned empty content")
+        content = content.strip()
 
         # Strip markdown fences if present
         if content.startswith("```json"):
@@ -99,8 +118,42 @@ battery_capacity, display_size, refresh_rate, ram, storage, camera_mp, charging_
             content = content[:-3]
 
         data = json.loads(content.strip())
-        return InterpretedQuery(**data)
+        result = InterpretedQuery(**data)
 
     except Exception as e:
         logger.error(f"Error interpreting query: {e}")
-        return InterpretedQuery.model_validate({"mode": "follow_up", "intent": "unknown"})
+        result = InterpretedQuery.model_validate({"mode": "follow_up", "intent": "unknown"})
+
+    # ── Post-processing: keyword-based auto-detection as safety net ──
+    msg_lower = user_message.lower()
+
+    # Auto-detect category if LLM missed it
+    if not result.category:
+        category_keywords = {
+            "mobile": ["phone", "mobile", "smartphone", "iphone", "galaxy", "pixel", "android", "ios"],
+            "tablet": ["tablet", "ipad", "tab"],
+            "watch": ["watch", "smartwatch", "wearable"],
+        }
+        for cat, keywords in category_keywords.items():
+            if any(kw in msg_lower for kw in keywords):
+                result.category = cat
+                break
+
+    # Auto-detect use_case if LLM missed it
+    if not result.use_case:
+        use_case_keywords = {
+            "camera": ["camera", "photo", "photography", "picture", "selfie", "video recording"],
+            "gaming": ["gaming", "game", "pubg", "genshin", "fortnite", "fps"],
+            "battery_life": ["battery", "long lasting", "endurance", "battery life"],
+            "multimedia": ["movie", "streaming", "video", "netflix", "youtube", "multimedia"],
+            "compact": ["small", "lightweight", "compact", "pocket", "mini"],
+            "balanced": ["all-rounder", "balanced", "everyday", "daily", "general"],
+            "productivity": ["work", "productivity", "office", "multitask", "business"],
+            "value_for_money": ["budget", "value", "affordable", "cheap", "under"],
+        }
+        for uc, keywords in use_case_keywords.items():
+            if any(kw in msg_lower for kw in keywords):
+                result.use_case = uc
+                break
+
+    return result

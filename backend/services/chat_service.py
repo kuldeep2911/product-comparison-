@@ -76,7 +76,7 @@ def update_session_mode(db: Session, session_id, mode: str):
     """Update the session mode."""
     session = get_session(db, session_id)
     if session:
-        session.mode = mode
+        session.mode = mode  # type: ignore[assignment]
         db.commit()
 
 

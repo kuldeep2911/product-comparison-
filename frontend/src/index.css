@@ -28,6 +28,7 @@
     --sidebar-foreground: 0 0% 100%;
     --gradient-from: #E8F4FD;
     --gradient-to: #C5DFF8;
+    --page-bg: #ddeaf8;
     --navy: #1a2744;
   }
 }
@@ -90,8 +91,7 @@
 .ai-bubble::after {
   left: -26px;
   width: 26px;
-  background: linear-gradient(180deg, var(--gradient-from), var(--gradient-to));
-  background-attachment: fixed;
+  background-color: var(--page-bg);
   border-bottom-right-radius: 10px;
 }
 
@@ -124,8 +124,7 @@
 .user-bubble::after {
   right: -26px;
   width: 26px;
-  background: linear-gradient(180deg, var(--gradient-from), var(--gradient-to));
-  background-attachment: fixed;
+  background-color: var(--page-bg);
   border-bottom-left-radius: 10px;
 }
 

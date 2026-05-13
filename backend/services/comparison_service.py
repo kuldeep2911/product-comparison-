@@ -153,7 +153,7 @@ def get_product_feature_summary(db: Session, product_ids: list[int], feature_key
     Returns {product_id: {feature_key: value}}.
     """
     placeholders = ", ".join([f":p{i}" for i in range(len(product_ids))])
-    params = {f"p{i}": pid for i, pid in enumerate(product_ids)}
+    params: dict[str, int | str] = {f"p{i}": pid for i, pid in enumerate(product_ids)}
 
     sql = f"""
         SELECT pf.product_id, pf.feature_key, pf.feature_value_numeric, pf.feature_value_text

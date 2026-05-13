@@ -58,10 +58,30 @@ def handle_message(db: Session, session_id: str, user_message: str) -> dict:
             # Everything else (recommend, general, spec_question, etc.) stays
             # scoped to the already-selected products
             result = _handle_spec_question(db, session_id, interpreted, user_message, context_dict)
+    elif _is_purchase_advice_session(session) and has_selected_products:
+        # In purchase_advice mode with recommendations already shown
+        if _is_compare_top_request(user_message, interpreted):
+            # User wants to compare the recommended products side-by-side
+            result = _handle_compare_recommendations(db, session_id, user_message, context_dict)
+        elif interpreted.intent == "compare" and len(interpreted.product_names) >= 2:
+            result = _handle_comparison(db, session_id, interpreted, user_message)
+        elif interpreted.intent in ("spec_question", "follow_up") or interpreted.follow_up_type:
+            result = _handle_spec_question(db, session_id, interpreted, user_message, context_dict)
+        elif interpreted.intent == "recommend":
+            result = _handle_recommendation(db, session_id, interpreted, user_message, context_dict)
+        else:
+            # General follow-up stays scoped to recommended products
+            result = _handle_spec_question(db, session_id, interpreted, user_message, context_dict)
+    elif _is_purchase_advice_session(session) and not has_selected_products:
+        # Still gathering requirements, stay in recommendation flow unless explicitly comparing
+        if interpreted.intent == "compare" and len(interpreted.product_names) >= 2:
+            result = _handle_comparison(db, session_id, interpreted, user_message)
+        else:
+            result = _handle_recommendation(db, session_id, interpreted, user_message, context_dict)
     elif interpreted.intent == "compare" and interpreted.product_names:
         result = _handle_comparison(db, session_id, interpreted, user_message)
     elif interpreted.intent == "recommend":
-        result = _handle_recommendation(db, session_id, interpreted, user_message)
+        result = _handle_recommendation(db, session_id, interpreted, user_message, context_dict)
     elif interpreted.intent == "category_browse":
         result = _handle_category_browse(db, session_id, interpreted, user_message)
     elif interpreted.intent == "spec_question" and context_dict.get("selected_products"):
@@ -138,15 +158,109 @@ def _handle_comparison(db: Session, session_id: str, interpreted: InterpretedQue
     }
 
 
-def _handle_recommendation(db: Session, session_id: str, interpreted: InterpretedQuery, user_message: str) -> dict:
+def _handle_recommendation(db: Session, session_id: str, interpreted: InterpretedQuery, user_message: str, context: dict) -> dict:
     """Handle purchase advice / recommendation requests."""
-    # Search by filters
+    
+    # Fall back to context values if LLM didn't extract them this turn
+    search_category = interpreted.category if interpreted.category is not None else context.get("selected_category")
+    search_budget = interpreted.budget if interpreted.budget is not None else context.get("budget")
+    search_use_case = interpreted.use_case if interpreted.use_case is not None else context.get("use_case")
+
+    # ── Auto-detect category from conversation history if still missing ──
+    if not search_category:
+        recent_messages = chat_service.get_recent_messages(db, session_id, limit=10)
+        all_text = " ".join([msg.content.lower() for msg in recent_messages]) + " " + user_message.lower()
+        if any(kw in all_text for kw in ["phone", "mobile", "smartphone", "iphone", "galaxy", "pixel", "android", "ios"]):
+            search_category = "mobile"
+        elif any(kw in all_text for kw in ["tablet", "ipad", "tab"]):
+            search_category = "tablet"
+        elif any(kw in all_text for kw in ["watch", "smartwatch", "wearable"]):
+            search_category = "watch"
+
+    # ── Auto-detect use_case from conversation history if still missing ──
+    if not search_use_case:
+        recent_messages = chat_service.get_recent_messages(db, session_id, limit=10)
+        all_text = " ".join([msg.content.lower() for msg in recent_messages]) + " " + user_message.lower()
+        uc_keywords = {
+            "camera": ["camera", "photo", "photography", "picture", "selfie"],
+            "gaming": ["gaming", "game", "pubg", "genshin", "fortnite"],
+            "battery_life": ["battery", "long lasting", "endurance"],
+            "multimedia": ["movie", "streaming", "video", "netflix", "youtube"],
+            "compact": ["small", "lightweight", "compact", "pocket", "mini"],
+            "balanced": ["all-rounder", "balanced", "everyday", "daily use"],
+            "productivity": ["work", "productivity", "office", "multitask"],
+            "value_for_money": ["value for money", "affordable", "cheap"],
+        }
+        for uc, keywords in uc_keywords.items():
+            if any(kw in all_text for kw in keywords):
+                search_use_case = uc
+                break
+
+    # Merge current context filters with any newly interpreted ones
+    final_filters = dict(context.get("filters") or {})
+    if interpreted.filters:
+        final_filters.update(interpreted.filters)
+
+    clarifying_turns = final_filters.get("clarifying_turns", 0)
+
+    # Skip turns if information is already known
+    while clarifying_turns < 3:
+        if clarifying_turns == 0 and search_budget is not None:
+            clarifying_turns += 1
+            continue
+        if clarifying_turns == 1 and search_use_case is not None:
+            clarifying_turns += 1
+            continue
+        break
+
+    if clarifying_turns < 3:
+        # Determine known constraints to guide LLM
+        known_info = []
+        if search_budget: known_info.append(f"Budget: {search_budget}")
+        if search_use_case: known_info.append(f"Use Case: {search_use_case}")
+        if search_category: known_info.append(f"Category: {search_category}")
+        for k, v in final_filters.items():
+            if k != "clarifying_turns":
+                known_info.append(f"{k}: {v}")
+                
+        from services.explanation_service import generate_next_clarifying_question
+        
+        # Get recent history
+        recent_messages = chat_service.get_recent_messages(db, session_id, limit=6)
+        history_text = "\n".join([f"{msg.role.capitalize()}: {msg.content}" for msg in recent_messages])
+        
+        question = generate_next_clarifying_question(user_message, history_text, ", ".join(known_info), clarifying_turns)
+        
+        if question.strip() == "READY":
+            # Force search logic
+            final_filters["clarifying_turns"] = 3
+        else:
+            # Increment turn counter
+            final_filters["clarifying_turns"] = clarifying_turns + 1
+            
+            # update context
+            chat_service.update_context(
+                db, session_id,
+                budget=search_budget,
+                category=search_category,
+                use_case=search_use_case,
+                filters=final_filters,
+            )
+            chat_service.update_session_mode(db, session_id, "purchase_advice")
+            
+            return {
+                "content": question,
+                "mode": "purchase_advice",
+            }
+
+    # Search by filters — strip internal keys that aren't real product features
+    search_filters = {k: v for k, v in final_filters.items() if k not in ("clarifying_turns",)}
     product_ids = search_products_by_filters(
         db,
-        category=interpreted.category,
-        filters=interpreted.filters,
-        budget=interpreted.budget,
-        limit=50,
+        category=search_category,
+        filters=search_filters if search_filters else None,
+        budget=search_budget,
+        limit=1500,
     )
 
     if not product_ids:
@@ -155,19 +269,19 @@ def _handle_recommendation(db: Session, session_id: str, interpreted: Interprete
             "mode": "purchase_advice",
         }
 
-    # Rank products
-    ranked = rank_products(db, product_ids[:50], interpreted.use_case)
-    top_results = ranked[:10]
+    # Rank ALL matching products so we get global top 20
+    ranked = rank_products(db, product_ids, search_use_case)
+    top_results = ranked[:20]
 
     # Update context
     top_ids = [p["id"] for p in top_results]
     chat_service.update_context(
         db, session_id,
         selected_products=top_ids,
-        selected_category=interpreted.category,
-        budget=interpreted.budget,
-        use_case=interpreted.use_case,
-        filters=interpreted.filters,
+        selected_category=search_category,
+        budget=search_budget,
+        use_case=search_use_case,
+        filters=final_filters,
     )
     chat_service.update_session_mode(db, session_id, "purchase_advice")
 
@@ -207,7 +321,7 @@ def _handle_category_browse(db: Session, session_id: str, interpreted: Interpret
         category=interpreted.category,
         filters=interpreted.filters,
         budget=interpreted.budget,
-        limit=30,
+        limit=1500,
     )
 
     if not product_ids:
@@ -217,7 +331,7 @@ def _handle_category_browse(db: Session, session_id: str, interpreted: Interpret
         }
 
     ranked = rank_products(db, product_ids, interpreted.use_case)
-    top_results = ranked[:10]
+    top_results = ranked[:20]
     top_ids = [p["id"] for p in top_results]
 
     chat_service.update_context(
@@ -344,15 +458,15 @@ def _extract_feature_keys(question: str) -> list[str]:
     
     feature_map = {
         "battery": ["battery_capacity", "charging_watts"],
-        "camera": ["camera_mp"],
+        "camera": ["camera_mp", "has_ois", "has_telephoto", "has_ultrawide", "aperture"],
         "display": ["display_size", "refresh_rate"],
         "screen": ["display_size", "refresh_rate"],
         "ram": ["ram"],
         "memory": ["ram", "storage"],
         "storage": ["storage"],
-        "processor": ["cpu_score", "gpu_score"],
-        "performance": ["cpu_score", "gpu_score"],
-        "gaming": ["gpu_score", "cpu_score", "refresh_rate", "ram"],
+        "processor": ["cpu_generation", "gpu_score"],
+        "performance": ["cpu_generation", "gpu_score"],
+        "gaming": ["gpu_score", "cpu_generation", "refresh_rate", "ram"],
         "weight": ["weight"],
         "charging": ["charging_watts"],
         "refresh": ["refresh_rate"],
@@ -364,3 +478,62 @@ def _extract_feature_keys(question: str) -> list[str]:
             keys.extend(features)
 
     return list(set(keys))
+
+
+def _is_purchase_advice_session(session) -> bool:
+    """Check if the session is in purchase_advice mode."""
+    return session and getattr(session, 'mode', None) == "purchase_advice"
+
+
+def _is_compare_top_request(user_message: str, interpreted: InterpretedQuery) -> bool:
+    """Detect if the user wants to compare their recommended products."""
+    msg_lower = user_message.lower()
+    compare_keywords = [
+        "compare top", "compare the top", "compare recommended",
+        "compare top picks", "compare picks", "compare them",
+        "compare these", "compare all", "side by side",
+        "compare the recommended", "compare products",
+    ]
+    if any(kw in msg_lower for kw in compare_keywords):
+        return True
+    # Also catch via intent if LLM detects compare but no specific product names
+    if interpreted.intent == "compare" and not interpreted.product_names:
+        return True
+    return False
+
+
+def _handle_compare_recommendations(db: Session, session_id: str, user_message: str, context: dict) -> dict:
+    """
+    Compare the top recommended products using a real comparison table.
+    Takes the top 5 product IDs from context and builds a side-by-side table.
+    """
+    product_ids = context.get("selected_products", [])
+    if not product_ids:
+        return {
+            "content": "I don't have any recommended products to compare. Please ask for recommendations first.",
+            "mode": "purchase_advice",
+        }
+
+    # Take top 5 for the comparison table (full table gets too wide otherwise)
+    compare_ids = product_ids[:5]
+
+    # Build comparison table using the same service as Scenario 1
+    comparison = compare_products(db, compare_ids)
+    if not comparison:
+        return {
+            "content": "I couldn't build a comparison table for those products. Please try again.",
+            "mode": "purchase_advice",
+        }
+
+    # Update context to track that we're now comparing these
+    chat_service.update_context(db, session_id, selected_products=product_ids)
+
+    # Generate explanation
+    explanation = generate_comparison_explanation(comparison["products"], user_message)
+
+    return {
+        "content": explanation,
+        "mode": "purchase_advice",
+        "comparison_table": comparison,
+        "product_ids": compare_ids,
+    }

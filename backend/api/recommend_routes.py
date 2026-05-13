@@ -45,9 +45,9 @@ def recommend(request: RecommendRequest, db: Session = Depends(get_db)):
             "message": "No products found matching those criteria. Try broadening your search.",
         }
 
-    ranked = rank_products(db, product_ids[:50], request.use_case)
+    ranked = rank_products(db, product_ids, request.use_case)
     return {
-        "results": ranked[:10],
+        "results": ranked[:20],
         "total_candidates": len(product_ids),
     }
 
@@ -67,10 +67,10 @@ def category_search(request: CategorySearchRequest, db: Session = Depends(get_db
     # If use_case provided, rank them
     product_ids = [p["id"] for p in products]
     if request.use_case:
-        ranked = rank_products(db, product_ids[:50], request.use_case)
+        ranked = rank_products(db, product_ids, request.use_case)
         return {
             "category": request.category,
-            "results": ranked[:10],
+            "results": ranked[:20],
             "total": len(products),
         }
 

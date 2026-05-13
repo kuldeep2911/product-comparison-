@@ -9,6 +9,24 @@ from sqlalchemy.orm import Session
 logger = logging.getLogger(__name__)
 
 
+CURRENCY_TO_USD = {
+    "USD": 1.0,
+    "EUR": 1.09,
+    "INR": 1.0 / 85.0,
+    "GBP": 1.26,
+    "RUB": 0.011,
+}
+
+
+def _normalize_budget_to_usd(budget: int | float) -> float:
+    """
+    Recommendation budgets are stored as a single numeric value in chat context.
+    The LLM is prompted to convert rupees to USD, but direct API calls and parser
+    misses can still send INR-like values such as 50000. Keep that failsafe here.
+    """
+    return float(budget) * CURRENCY_TO_USD["INR"] if budget > 5000 else float(budget)
+
+
 def search_products_by_name(db: Session, names: list[str]) -> list[dict]:
     """
     Fuzzy-match product names from the database.
@@ -146,6 +164,30 @@ def search_products_by_filters(db: Session, category: str | None = None,
         if op and val is not None:
             where_clauses.append(f"{alias}.numeric_value {op} :val_{alias}")
             params[f"val_{alias}"] = val
+
+    if budget is not None:
+        budget_usd = _normalize_budget_to_usd(budget)
+        
+        joins.append("LEFT JOIN product_features price_feat ON p.id = price_feat.product_id AND price_feat.feature_key = 'price'")
+        where_clauses.append("""
+            COALESCE(p.price, price_feat.feature_value_numeric) *
+            CASE COALESCE(p.price_currency, 'USD')
+                WHEN 'USD' THEN :rate_usd
+                WHEN 'EUR' THEN :rate_eur
+                WHEN 'INR' THEN :rate_inr
+                WHEN 'GBP' THEN :rate_gbp
+                WHEN 'RUB' THEN :rate_rub
+                ELSE :rate_usd
+            END <= :budget_usd
+        """)
+        params.update({
+            "budget_usd": budget_usd,
+            "rate_usd": CURRENCY_TO_USD["USD"],
+            "rate_eur": CURRENCY_TO_USD["EUR"],
+            "rate_inr": CURRENCY_TO_USD["INR"],
+            "rate_gbp": CURRENCY_TO_USD["GBP"],
+            "rate_rub": CURRENCY_TO_USD["RUB"],
+        })
 
     sql = base_sql
     if joins:

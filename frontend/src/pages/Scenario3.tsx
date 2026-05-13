@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowUp, Loader2 } from "lucide-react";
 import Layout from "@/components/Layout";
 import {
-  startSession, sendMessage, getCategories, getHistory,
+  startSession, sendMessage, getCategories, getHistory, compareProducts,
   type ChatMessageResponse, type RecommendedProduct, type CategoryInfo, type ComparisonTable,
 } from "@/lib/api";
 
@@ -26,6 +26,29 @@ const NAVY_HOVER = "#2a3a5c";
 let msgId = 0;
 const nextId = () => `s3-msg-${++msgId}`;
 
+const formatFeatureLabel = (key: string) =>
+  key.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
+
+const getFeatureRows = (details?: Record<string, unknown>) => {
+  if (!details) return [];
+
+  return Object.entries(details)
+    .map(([key, raw]) => {
+      const detail = raw as { weighted_score?: number; value?: number; display_value?: string };
+      const score = typeof detail?.weighted_score === "number" ? detail.weighted_score : 0;
+      const value = detail?.display_value ?? detail?.value;
+      return {
+        key,
+        label: formatFeatureLabel(key),
+        score,
+        value: value !== undefined ? String(value) : `${Math.round(score * 100)}%`,
+      };
+    })
+    .filter((row) => row.score > 0 || row.value)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 4);
+};
+
 const Scenario3 = () => {
   const navigate = useNavigate();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -36,6 +59,7 @@ const Scenario3 = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [categories, setCategories] = useState<CategoryInfo[]>([]);
   const [currentProducts, setCurrentProducts] = useState<RecommendedProduct[]>([]);
+  const [selectedProductIds, setSelectedProductIds] = useState<number[]>([]);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -121,13 +145,14 @@ const Scenario3 = () => {
 
     if (response.recommendations && response.recommendations.length > 0) {
       setCurrentProducts(response.recommendations);
+      setSelectedProductIds([]);
       newMessages.push({
         id: nextId(), role: "ai", content: "",
-        type: "cards", cards: response.recommendations.slice(0, 5),
+        type: "cards", cards: response.recommendations.slice(0, 20),
       });
 
       const buttons: { label: string; action: string; row?: number }[] = [
-        { label: "Compare these products", action: "compare", row: 1 },
+        { label: "Compare selected", action: "compare", row: 1 },
         { label: "Refine search", action: "refine", row: 1 },
         { label: "Start over", action: "new", row: 2 },
       ];
@@ -171,6 +196,18 @@ const Scenario3 = () => {
     setInputActive(true);
   };
 
+  const toggleProductSelection = (productId: number) => {
+    setSelectedProductIds((prev) => {
+      if (prev.includes(productId)) {
+        return prev.filter((id) => id !== productId);
+      }
+      if (prev.length >= 4) {
+        return prev;
+      }
+      return [...prev, productId];
+    });
+  };
+
   const handleSend = async () => {
     if (!inputValue.trim() || !inputActive || !sessionId) return;
     const text = inputValue.trim();
@@ -199,18 +236,41 @@ const Scenario3 = () => {
     if (!sessionId) return;
 
     if (action === "compare") {
-      addMessages([{ id: nextId(), role: "user", content: "Compare these products" }]);
+      if (selectedProductIds.length < 2) {
+        addMessages([{
+          id: nextId(),
+          role: "ai",
+          content: "Select at least 2 products to compare. You can compare up to 4 at once.",
+          type: "error",
+        }]);
+        return;
+      }
+
+      const selectedProducts = currentProducts.filter((product) => selectedProductIds.includes(product.id));
+      addMessages([{
+        id: nextId(),
+        role: "user",
+        content: `Compare ${selectedProducts.map((product) => `${product.brand} ${product.name}`).join(" vs ")}`,
+      }]);
       setLoading(true);
       addMessages([{ id: nextId(), role: "ai", content: "", type: "loading" }]);
 
       try {
-        const productNames = currentProducts.slice(0, 5).map(p => `${p.name}`).join(" vs ");
-        const response = await sendMessage(sessionId, `Compare ${productNames}`);
+        const comparison = await compareProducts(selectedProductIds);
         setMessages(prev => prev.filter(m => m.type !== "loading"));
-        const responseMessages = processApiResponse(response);
-        addMessages(responseMessages);
+        addMessages([
+          { id: nextId(), role: "ai", content: "", type: "comparison-table", tableData: comparison },
+          {
+            id: nextId(), role: "ai", content: "", type: "action-buttons",
+            actionButtons: [
+              { label: "Ask a question about these", action: "follow-up" },
+              { label: "Start over", action: "new" },
+            ],
+          },
+        ]);
       } catch {
         setMessages(prev => prev.filter(m => m.type !== "loading"));
+        addMessages([{ id: nextId(), role: "ai", content: "Sorry, I couldn't build the comparison table. Please try again.", type: "error" }]);
       }
       setLoading(false);
       setInputActive(true);
@@ -230,6 +290,7 @@ const Scenario3 = () => {
         setSessionId(session.session_id);
         setSelectedCategory(null);
         setCurrentProducts([]);
+        setSelectedProductIds([]);
       } catch { }
       addMessages([{ id: nextId(), role: "user", content: "Start over" }]);
       await delay(300);
@@ -292,20 +353,52 @@ const Scenario3 = () => {
 
     if (msg.type === "cards" && msg.cards) {
       return (
-        <div key={msg.id} className="chat-element flex gap-3 flex-wrap">
+        <div key={msg.id} className="chat-element w-full">
+          <div className="mb-3 flex flex-wrap items-center gap-2 text-xs" style={{ color: NAVY }}>
+            <span className="rounded-full bg-white px-3 py-1.5 font-semibold shadow-sm">
+              Selected {selectedProductIds.length}/4
+            </span>
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
           {msg.cards.map((card, i) => (
-            <div key={card.id} className="bg-white rounded-xl w-full sm:w-[180px] overflow-hidden shadow-sm">
+            <div key={card.id} className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
               <div className="h-8 flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: NAVY }}>
                 #{i + 1}
               </div>
-              <div className="p-3">
-                <p className="font-semibold text-sm mb-1" style={{ color: NAVY }}>{card.brand} {card.name}</p>
-                <p className="text-xs text-gray-500">
-                  {card.score > 0 ? `Score: ${card.score.toFixed(2)}` : ""}
-                </p>
+              <div className="p-3 space-y-3">
+                <label className="flex items-start gap-2">
+                  <input
+                    type="checkbox"
+                    checked={selectedProductIds.includes(card.id)}
+                    disabled={!selectedProductIds.includes(card.id) && selectedProductIds.length >= 4}
+                    onChange={() => toggleProductSelection(card.id)}
+                    className="mt-1 h-4 w-4 rounded border-gray-300 accent-[#1a2744]"
+                    aria-label={`Select ${card.brand} ${card.name}`}
+                  />
+                  <span className="font-semibold text-sm leading-snug" style={{ color: NAVY }}>
+                    {card.brand} {card.name}
+                  </span>
+                </label>
+                <div>
+                  <p className="text-[11px] font-semibold uppercase tracking-normal text-gray-400">Overall Score</p>
+                  <p className="text-sm font-bold" style={{ color: NAVY }}>
+                    {card.score > 0 ? card.score.toFixed(2) : "0.00"}
+                  </p>
+                </div>
+                {getFeatureRows(card.details).length > 0 && (
+                  <div className="border-t border-gray-100 pt-2 space-y-1.5">
+                    {getFeatureRows(card.details).map((feature) => (
+                      <div key={feature.key} className="flex justify-between gap-2 text-[11px]">
+                        <span className="text-gray-500">{feature.label}</span>
+                        <span className="font-semibold" style={{ color: NAVY }}>{feature.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           ))}
+          </div>
         </div>
       );
     }
@@ -442,7 +535,10 @@ const Scenario3 = () => {
                 <button
                   key={btn.action}
                   onClick={() => handleActionButton(btn.action)}
-                  className="rounded-full px-5 py-2.5 text-sm font-medium text-white transition-colors"
+                  disabled={btn.action === "compare" && selectedProductIds.length < 2}
+                  className={`rounded-full px-5 py-2.5 text-sm font-medium text-white transition-colors ${
+                    btn.action === "compare" && selectedProductIds.length < 2 ? "cursor-not-allowed opacity-50" : ""
+                  }`}
                   style={{ backgroundColor: NAVY }}
                   onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = NAVY_HOVER)}
                   onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = NAVY)}

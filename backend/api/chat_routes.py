@@ -25,7 +25,7 @@ def start_session(request: SessionStartRequest, db: Session = Depends(get_db)):
         session = chat_service.start_session(db, mode=request.mode, user_id=request.user_id)
         return SessionStartResponse(
             session_id=str(session.id),
-            mode=session.mode,
+            mode=str(session.mode),
         )
     except Exception as e:
         logger.error(f"Error starting session: {e}", exc_info=True)
@@ -62,10 +62,15 @@ def send_message(request: ChatMessageRequest, db: Session = Depends(get_db)):
             response.product_ids = result["product_ids"]
 
         return response
-
     except Exception as e:
-        logger.error(f"Error processing message: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Failed to process message")
+        logger.error(f"Error handling message: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Error processing message")
+
+@router.get("/debug_path")
+def debug_path():
+    import sys
+    import services.ranking_engine as re
+    return {"sys_path": sys.path, "ranking_engine": re.__file__}
 
 
 @router.get("/session/history/{session_id}", response_model=ChatHistoryResponse)
@@ -79,14 +84,14 @@ def get_history(session_id: str, db: Session = Depends(get_db)):
 
     return ChatHistoryResponse(
         session_id=session_id,
-        mode=session.mode,
+        mode=str(session.mode),  # type: ignore
         messages=[
             ChatHistoryMessage(
-                id=msg.id,
-                role=msg.role,
-                content=msg.content,
-                metadata=msg.metadata_,
-                created_at=msg.created_at,
+                id=int(msg.id),  # type: ignore
+                role=str(msg.role),  # type: ignore
+                content=str(msg.content),  # type: ignore
+                metadata=msg.metadata_,  # type: ignore
+                created_at=msg.created_at,  # type: ignore
             )
             for msg in messages
         ],
@@ -106,14 +111,14 @@ def list_sessions(db: Session = Depends(get_db)):
         
         # Determine title - skip empty sessions
         if first_msg and first_msg.content:
-            text = first_msg.content
+            text = str(first_msg.content)
             title = text[:35] + ("..." if len(text) > 35 else "")
             
             result.append({
                 "session_id": str(s.id),
-                "mode": s.mode,
+                "mode": str(s.mode),  # type: ignore
                 "title": title,
-                "created_at": s.created_at
+                "created_at": s.created_at  # type: ignore
             })
             
     return result

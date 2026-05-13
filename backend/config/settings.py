@@ -18,7 +18,7 @@ class Settings(BaseSettings):
 
     # LLM (Groq)
     GROQ_API_KEY: str = ""
-    LLM_MODEL: str = "llama-3.3-70b-versatile"
+    LLM_MODEL: str = "llama3-8b-8192"
 
     # App
     APP_ENV: str = "development"
