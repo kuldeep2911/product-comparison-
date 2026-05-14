@@ -2,6 +2,7 @@
 Application settings loaded from environment variables.
 """
 import os
+import secrets
 from pydantic_settings import BaseSettings
 from dotenv import load_dotenv
 
@@ -23,7 +24,12 @@ class Settings(BaseSettings):
     # App
     APP_ENV: str = "development"
     SECRET_KEY: str = "dev-secret-key"
-    CORS_ORIGINS: str = "http://localhost:8080,http://localhost:3000"
+    CORS_ORIGINS: str = "http://localhost:8080,http://localhost:3000,http://localhost:5173"
+
+    # JWT Auth
+    JWT_SECRET_KEY: str = secrets.token_urlsafe(32)  # Will be overridden by .env in prod
+    JWT_ALGORITHM: str = "HS256"
+    JWT_EXPIRE_DAYS: int = 30  # Long-lived like ChatGPT (30 days)
 
     @property
     def cors_origin_list(self) -> list[str]:

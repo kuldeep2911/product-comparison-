@@ -14,15 +14,18 @@ from schemas.chat import (
 from services import chat_service
 from services.conversation_manager import handle_message
 
+from database.models import User
+from utils.security import get_current_user
+
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
 @router.post("/session/start", response_model=SessionStartResponse)
-def start_session(request: SessionStartRequest, db: Session = Depends(get_db)):
+def start_session(request: SessionStartRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Create a new chat session."""
     try:
-        session = chat_service.start_session(db, mode=request.mode, user_id=request.user_id)
+        session = chat_service.start_session(db, mode=request.mode, user_id=str(current_user.id))
         return SessionStartResponse(
             session_id=str(session.id),
             mode=str(session.mode),
@@ -33,7 +36,7 @@ def start_session(request: SessionStartRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/chat/message", response_model=ChatMessageResponse)
-def send_message(request: ChatMessageRequest, db: Session = Depends(get_db)):
+def send_message(request: ChatMessageRequest, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Send a message and get AI response."""
     # Validate session exists
     session = chat_service.get_session(db, request.session_id)
@@ -66,19 +69,16 @@ def send_message(request: ChatMessageRequest, db: Session = Depends(get_db)):
         logger.error(f"Error handling message: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Error processing message")
 
-@router.get("/debug_path")
-def debug_path():
-    import sys
-    import services.ranking_engine as re
-    return {"sys_path": sys.path, "ranking_engine": re.__file__}
 
 
 @router.get("/session/history/{session_id}", response_model=ChatHistoryResponse)
-def get_history(session_id: str, db: Session = Depends(get_db)):
-    """Get the full chat history for a session."""
+def get_history(session_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Get the full chat history for a session (owner only)."""
     session = chat_service.get_session(db, session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
+    if str(session.user_id) != str(current_user.id):
+        raise HTTPException(status_code=403, detail="Access denied")
 
     messages = chat_service.get_session_history(db, session_id)
 
@@ -98,35 +98,43 @@ def get_history(session_id: str, db: Session = Depends(get_db)):
     )
 
 @router.get("/session/list")
-def list_sessions(db: Session = Depends(get_db)):
-    """Get a list of recent sessions with titles for the sidebar."""
-    from database.models import ChatMessage
-    sessions = chat_service.get_recent_sessions(db)
+def list_sessions(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Get sessions for the authenticated user only."""
+    from database.models import ChatMessage, ChatSession
+    sessions = (
+        db.query(ChatSession)
+        .filter(ChatSession.user_id == str(current_user.id))
+        .order_by(ChatSession.created_at.desc())
+        .limit(50)
+        .all()
+    )
     result = []
     for s in sessions:
         first_msg = db.query(ChatMessage).filter(
-            ChatMessage.session_id == s.id, 
+            ChatMessage.session_id == s.id,
             ChatMessage.role == "user"
         ).order_by(ChatMessage.created_at.asc()).first()
-        
-        # Determine title - skip empty sessions
+
         if first_msg and first_msg.content:
             text = str(first_msg.content)
             title = text[:35] + ("..." if len(text) > 35 else "")
-            
             result.append({
                 "session_id": str(s.id),
-                "mode": str(s.mode),  # type: ignore
+                "mode": str(s.mode),
                 "title": title,
-                "created_at": s.created_at  # type: ignore
+                "created_at": s.created_at,
             })
-            
+
     return result
 
+
 @router.delete("/session/{session_id}")
-def delete_chat_session(session_id: str, db: Session = Depends(get_db)):
-    """Delete a chat session."""
-    success = chat_service.delete_session(db, session_id)
-    if not success:
+def delete_chat_session(session_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Delete a chat session (owner only)."""
+    session = chat_service.get_session(db, session_id)
+    if not session:
         raise HTTPException(status_code=404, detail="Session not found")
+    if str(session.user_id) != str(current_user.id):
+        raise HTTPException(status_code=403, detail="Access denied")
+    chat_service.delete_session(db, session_id)
     return {"status": "deleted"}

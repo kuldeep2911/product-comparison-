@@ -2,6 +2,16 @@
 -- Chat Extension Tables for Electronics Comparison Platform
 -- ============================================================
 
+-- 0. Users
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    hashed_password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW(),
+    is_active INTEGER DEFAULT 1
+);
+
 -- 1. Chat Sessions
 CREATE TABLE IF NOT EXISTS chat_sessions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

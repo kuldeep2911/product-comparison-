@@ -22,6 +22,7 @@ import uvicorn
 
 from config.settings import settings
 from config.database import engine
+from api.auth_routes import router as auth_router
 from api.chat_routes import router as chat_router
 from api.compare_routes import router as compare_router
 from api.recommend_routes import router as recommend_router
@@ -49,6 +50,7 @@ app.add_middleware(
 app.add_middleware(RateLimitMiddleware, max_requests=120, window_seconds=60)
 
 # Include routers
+app.include_router(auth_router, prefix="/api")
 app.include_router(chat_router, prefix="/api")
 app.include_router(compare_router, prefix="/api")
 app.include_router(recommend_router, prefix="/api")

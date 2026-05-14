@@ -1,25 +1,25 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, MessageSquare, Trash2 } from "lucide-react";
+import { Plus, MessageSquare, Trash2, LogOut, User } from "lucide-react";
 import { getSessionsList, deleteSession, type SessionInfo } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Sidebar = () => {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [sessions, setSessions] = useState<SessionInfo[]>([]);
 
   useEffect(() => {
-    getSessionsList().then(setSessions).catch(console.error);
-  }, []);
+    if (user) {
+      getSessionsList().then(setSessions).catch(console.error);
+    }
+  }, [user]);
 
   const handleSessionClick = (session: SessionInfo) => {
-    // Navigate based on mode
     let path = "/scenario1";
     if (session.mode === "purchase_advice") path = "/scenario2";
     if (session.mode === "category_compare") path = "/scenario3";
-    
     navigate(`${path}?session=${session.session_id}`);
-    
-    // Quick hack to force reload if already on the same path
     if (window.location.pathname === path) {
       setTimeout(() => window.location.reload(), 50);
     }
@@ -30,9 +30,8 @@ const Sidebar = () => {
     try {
       await deleteSession(sessionId);
       setSessions(prev => prev.filter(s => s.session_id !== sessionId));
-      
       const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('session') === sessionId) {
+      if (urlParams.get("session") === sessionId) {
         navigate("/");
         setTimeout(() => window.location.reload(), 50);
       }
@@ -41,20 +40,24 @@ const Sidebar = () => {
     }
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate("/auth");
+  };
+
   return (
     <div
-      className="sidebar w-[250px] min-w-[250px] h-screen fixed left-0 top-0 flex flex-col py-8 px-4 z-50 overflow-y-auto"
+      className="sidebar w-[250px] min-w-[250px] h-screen fixed left-0 top-0 flex flex-col py-8 px-4 z-50 overflow-hidden"
       style={{ backgroundColor: "#1a2744" }}
     >
+      {/* Logo */}
       <div className="flex items-center justify-center mb-8">
         <span className="text-white text-xl font-bold">Assistme</span>
       </div>
-      
+
+      {/* New chat button */}
       <button
-        onClick={() => {
-          navigate("/");
-          setTimeout(() => window.location.reload(), 50);
-        }}
+        onClick={() => { navigate("/"); setTimeout(() => window.location.reload(), 50); }}
         className="flex items-center justify-center gap-2 bg-white rounded-xl px-5 py-2.5 font-medium transition-colors hover:bg-gray-100 mb-8 w-full"
         style={{ color: "#1a2744", flexShrink: 0 }}
       >
@@ -62,10 +65,16 @@ const Sidebar = () => {
         New chat
       </button>
 
-      <div className="flex flex-col gap-2 w-full overflow-y-auto">
-        <h3 className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2 px-2">Recent Chats</h3>
+      {/* Session list */}
+      <div className="flex flex-col gap-2 w-full overflow-y-auto flex-1 min-h-0">
+        <h3 className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2 px-2">
+          Recent Chats
+        </h3>
         {sessions.map(s => (
-          <div key={s.session_id} className="group relative flex items-center justify-between w-full rounded-lg hover:bg-white/10 transition-colors">
+          <div
+            key={s.session_id}
+            className="group relative flex items-center justify-between w-full rounded-lg hover:bg-white/10 transition-colors"
+          >
             <button
               onClick={() => handleSessionClick(s)}
               className="flex items-center gap-3 text-left w-full px-3 py-2.5 text-gray-300"
@@ -81,6 +90,23 @@ const Sidebar = () => {
             </button>
           </div>
         ))}
+      </div>
+
+      {/* User info + Logout — pinned to bottom */}
+      <div className="mt-4 pt-4 border-t border-white/10 flex-shrink-0">
+        <div className="flex items-center gap-3 px-2 mb-3">
+          <div className="w-8 h-8 rounded-full bg-blue-600/30 border border-blue-500/40 flex items-center justify-center">
+            <User size={14} className="text-blue-300" />
+          </div>
+          <span className="text-sm text-white/70 truncate">{user?.username}</span>
+        </div>
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-all text-sm"
+        >
+          <LogOut size={16} />
+          Sign out
+        </button>
       </div>
     </div>
   );
