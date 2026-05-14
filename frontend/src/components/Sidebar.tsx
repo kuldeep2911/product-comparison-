@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, MessageSquare, Trash2, LogOut, User } from "lucide-react";
+import { useState } from "react";
 import { getSessionsList, deleteSession, type SessionInfo } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -8,6 +9,14 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [sessions, setSessions] = useState<SessionInfo[]>([]);
+
+  // Always enforce light mode
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.remove("dark");
+    root.setAttribute("data-theme", "light");
+    localStorage.setItem("theme", "light");
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -46,65 +55,195 @@ const Sidebar = () => {
   };
 
   return (
-    <div
-      className="sidebar w-[250px] min-w-[250px] h-screen fixed left-0 top-0 flex flex-col py-8 px-4 z-50 overflow-hidden"
-      style={{ backgroundColor: "#1a2744" }}
-    >
+    <div className="sidebar w-[250px] min-w-[250px] h-screen fixed left-0 top-0 flex flex-col py-6 px-4 z-50 overflow-hidden">
+      
       {/* Logo */}
-      <div className="flex items-center justify-center mb-8">
-        <span className="text-white text-xl font-bold">Assistme</span>
+      <div className="flex items-center mb-8 px-1">
+        <span style={{
+          fontFamily: "Syne, sans-serif",
+          fontWeight: 800,
+          fontSize: "1.1rem",
+          color: "white",
+          letterSpacing: "-0.02em",
+        }}>
+          Assist<span style={{ color: "var(--accent)" }}>me</span>
+        </span>
       </div>
 
       {/* New chat button */}
       <button
         onClick={() => { navigate("/"); setTimeout(() => window.location.reload(), 50); }}
-        className="flex items-center justify-center gap-2 bg-white rounded-xl px-5 py-2.5 font-medium transition-colors hover:bg-gray-100 mb-8 w-full"
-        style={{ color: "#1a2744", flexShrink: 0 }}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "8px",
+          background: "rgba(255,255,255,0.10)",
+          border: "1px solid rgba(255,255,255,0.15)",
+          borderRadius: "12px",
+          padding: "10px 16px",
+          color: "white",
+          fontSize: "0.875rem",
+          fontWeight: 500,
+          cursor: "pointer",
+          marginBottom: "24px",
+          width: "100%",
+          flexShrink: 0,
+          transition: "all 0.2s ease",
+          fontFamily: "DM Sans, sans-serif",
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.background = "rgba(59,107,255,0.25)";
+          e.currentTarget.style.borderColor = "rgba(59,107,255,0.5)";
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.background = "rgba(255,255,255,0.10)";
+          e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)";
+        }}
       >
-        <Plus size={18} />
+        <Plus size={16} />
         New chat
       </button>
 
       {/* Session list */}
-      <div className="flex flex-col gap-2 w-full overflow-y-auto flex-1 min-h-0">
-        <h3 className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2 px-2">
+      <div className="flex flex-col gap-1 w-full overflow-y-auto flex-1 min-h-0">
+        <p style={{
+          color: "rgba(255,255,255,0.35)",
+          fontSize: "0.6875rem",
+          fontWeight: 600,
+          textTransform: "uppercase",
+          letterSpacing: "0.1em",
+          padding: "0 8px",
+          marginBottom: "6px",
+          fontFamily: "Syne, sans-serif",
+        }}>
           Recent Chats
-        </h3>
+        </p>
+
+        {sessions.length === 0 && (
+          <p style={{ color: "rgba(255,255,255,0.25)", fontSize: "0.8125rem", padding: "8px", fontFamily: "DM Sans, sans-serif" }}>
+            No chats yet
+          </p>
+        )}
+
         {sessions.map(s => (
-          <div
-            key={s.session_id}
-            className="group relative flex items-center justify-between w-full rounded-lg hover:bg-white/10 transition-colors"
+          <div key={s.session_id} className="group relative flex items-center justify-between w-full" style={{
+            borderRadius: "10px",
+            transition: "background 0.15s ease",
+          }}
+            onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.07)")}
+            onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
           >
             <button
               onClick={() => handleSessionClick(s)}
-              className="flex items-center gap-3 text-left w-full px-3 py-2.5 text-gray-300"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+                textAlign: "left",
+                width: "100%",
+                padding: "9px 10px",
+                color: "rgba(255,255,255,0.65)",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                fontFamily: "DM Sans, sans-serif",
+              }}
             >
-              <MessageSquare size={16} className="shrink-0" />
-              <span className="text-sm truncate pr-6">{s.title || "New Chat"}</span>
+              <MessageSquare size={14} style={{ flexShrink: 0, opacity: 0.6 }} />
+              <span style={{ fontSize: "0.8125rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", paddingRight: "24px" }}>
+                {s.title || "New Chat"}
+              </span>
             </button>
             <button
               onClick={(e) => handleDeleteSession(e, s.session_id)}
-              className="absolute right-2 opacity-0 group-hover:opacity-100 p-1.5 text-gray-400 hover:text-red-400 hover:bg-white/10 rounded-md transition-all"
+              style={{
+                position: "absolute",
+                right: "8px",
+                opacity: 0,
+                padding: "5px",
+                color: "rgba(255,255,255,0.40)",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                borderRadius: "6px",
+                transition: "all 0.15s ease",
+              }}
+              className="group-hover:!opacity-100"
+              onMouseEnter={e => {
+                e.currentTarget.style.color = "#ff6b6b";
+                e.currentTarget.style.background = "rgba(255,107,107,0.12)";
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.color = "rgba(255,255,255,0.40)";
+                e.currentTarget.style.background = "none";
+              }}
             >
-              <Trash2 size={14} />
+              <Trash2 size={13} />
             </button>
           </div>
         ))}
       </div>
 
-      {/* User info + Logout — pinned to bottom */}
-      <div className="mt-4 pt-4 border-t border-white/10 flex-shrink-0">
-        <div className="flex items-center gap-3 px-2 mb-3">
-          <div className="w-8 h-8 rounded-full bg-blue-600/30 border border-blue-500/40 flex items-center justify-center">
-            <User size={14} className="text-blue-300" />
+      {/* User info + logout — pinned bottom */}
+      <div style={{
+        marginTop: "12px",
+        paddingTop: "14px",
+        borderTop: "1px solid rgba(255,255,255,0.08)",
+        flexShrink: 0,
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "0 6px 10px" }}>
+          <div style={{
+            width: "30px",
+            height: "30px",
+            borderRadius: "50%",
+            background: "linear-gradient(135deg, var(--accent), #2952d9)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+          }}>
+            <User size={13} color="white" />
           </div>
-          <span className="text-sm text-white/70 truncate">{user?.username}</span>
+          <span style={{
+            fontSize: "0.8125rem",
+            color: "rgba(255,255,255,0.65)",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            fontFamily: "DM Sans, sans-serif",
+          }}>
+            {user?.username}
+          </span>
         </div>
+
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-all text-sm"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            width: "100%",
+            padding: "9px 10px",
+            borderRadius: "10px",
+            color: "rgba(255,255,255,0.45)",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            fontSize: "0.8125rem",
+            transition: "all 0.15s ease",
+            fontFamily: "DM Sans, sans-serif",
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.color = "#ff6b6b";
+            e.currentTarget.style.background = "rgba(255,107,107,0.10)";
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.color = "rgba(255,255,255,0.45)";
+            e.currentTarget.style.background = "none";
+          }}
         >
-          <LogOut size={16} />
+          <LogOut size={15} />
           Sign out
         </button>
       </div>

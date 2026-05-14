@@ -1,139 +1,728 @@
+@import url("https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap");
 @import "tailwindcss/base";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
-@layer base {
-  :root {
-    --background: 205 70% 95%;
-    --foreground: 220 40% 20%;
-    --primary: 220 40% 20%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 210 60% 90%;
-    --secondary-foreground: 220 40% 20%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 220 40% 20%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 220 40% 20%;
-    --radius: 0.5rem;
-    --card: 0 0% 100%;
-    --card-foreground: 220 40% 20%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 40% 20%;
-    --sidebar-bg: 220 40% 20%;
-    --sidebar-foreground: 0 0% 100%;
-    --gradient-from: #E8F4FD;
-    --gradient-to: #C5DFF8;
-    --page-bg: #ddeaf8;
-    --navy: #1a2744;
-  }
+/* ══════════════════════════════════════════════════════
+   DESIGN TOKENS
+══════════════════════════════════════════════════════ */
+:root {
+  /* Light mode */
+  --bg-primary:       #edf2fb;
+  --bg-secondary:     #dde6f5;
+  --bg-glass:         rgba(255, 255, 255, 0.55);
+  --bg-glass-strong:  rgba(255, 255, 255, 0.80);
+  --bg-card:          rgba(255, 255, 255, 0.70);
+
+  --sidebar-bg:       #0f1c3d;
+  --sidebar-border:   rgba(255,255,255,0.06);
+  --sidebar-text:     rgba(255,255,255,0.75);
+
+  --navy:             #1a2744;
+  --navy-hover:       #2a3a5c;
+  --bubble-bg:        #1a2744;
+  --bubble-bg-user:   #243560;
+  --page-solid:       #edf2fb;
+  --accent:           #3b6bff;
+  --accent-glow:      rgba(59,107,255,0.35);
+  --accent-2:         #00d4aa;
+  --score-color:      #3b6bff;
+
+  --text-primary:     #0f1c3d;
+  --text-secondary:   #4a5679;
+  --text-muted:       #8b96b8;
+
+  --border:           rgba(15,28,61,0.10);
+  --border-glass:     rgba(255,255,255,0.45);
+
+  --shadow-soft:      0 4px 24px rgba(15,28,61,0.08);
+  --shadow-card:      0 8px 32px rgba(15,28,61,0.12), 0 2px 8px rgba(15,28,61,0.06);
+  --shadow-glow:      0 0 40px rgba(59,107,255,0.18);
+
+  --radius-sm:        10px;
+  --radius-md:        16px;
+  --radius-lg:        24px;
+  --radius-xl:        32px;
+
+  --page-bg:          var(--bg-primary);
+
+  /* Shadcn tokens mapped */
+  --background:       210 40% 95%;
+  --foreground:       220 60% 15%;
+  --primary:          224 100% 55%;
+  --primary-foreground: 0 0% 100%;
+  --secondary:        210 50% 90%;
+  --secondary-foreground: 220 60% 15%;
+  --muted:            210 40% 93%;
+  --muted-foreground: 215 25% 45%;
+  --accent-hsl:       210 40% 93%;
+  --accent-foreground: 220 60% 15%;
+  --destructive:      0 80% 58%;
+  --destructive-foreground: 0 0% 100%;
+  --border-hsl:       214 30% 88%;
+  --input:            214 30% 88%;
+  --ring:             224 100% 55%;
+  --radius:           0.75rem;
+  --card:             0 0% 100%;
+  --card-foreground:  220 60% 15%;
+  --popover:          0 0% 100%;
+  --popover-foreground: 220 60% 15%;
 }
 
+/* Dark mode disabled — light mode only */
+
+/* ══════════════════════════════════════════════════════
+   BASE RESET
+══════════════════════════════════════════════════════ */
 @layer base {
-  * {
-    border-color: hsl(var(--border));
-  }
+  * { border-color: var(--border); box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
 
   body {
-    color: hsl(var(--foreground));
+    font-family: "DM Sans", sans-serif;
+    color: var(--text-primary);
+    background-color: var(--bg-primary);
     margin: 0;
+    -webkit-font-smoothing: antialiased;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: "Syne", sans-serif;
+    font-weight: 700;
   }
 }
 
-/* ── Fade-in animation for every new chat element ── */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
+/* ══════════════════════════════════════════════════════
+   PAGE BACKGROUND — flat solid colour
+══════════════════════════════════════════════════════ */
+.page-bg {
+  background-color: #edf2fb;
+  min-height: 100vh;
+}
 
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* ══════════════════════════════════════════════════════
+   GLASSMORPHISM CARDS
+══════════════════════════════════════════════════════ */
+.glass {
+  background: var(--bg-glass);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid var(--border-glass);
+  box-shadow: var(--shadow-card);
+}
+
+.glass-strong {
+  background: var(--bg-glass-strong);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border: 1px solid var(--border-glass);
+  box-shadow: var(--shadow-card);
+}
+
+/* ══════════════════════════════════════════════════════
+   SIDEBAR
+══════════════════════════════════════════════════════ */
+.sidebar {
+  background: var(--sidebar-bg) !important;
+  border-right: 1px solid var(--sidebar-border);
+  box-shadow: 4px 0 32px rgba(0,0,0,0.20);
+}
+
+/* ══════════════════════════════════════════════════════
+   ANIMATIONS
+══════════════════════════════════════════════════════ */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 var(--accent-glow); }
+  50%       { box-shadow: 0 0 0 8px transparent; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-6px); }
 }
 
 .chat-element {
-  animation: fadeIn 300ms ease forwards;
+  animation: fadeSlideUp 320ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
-/* ── iOS-style speech bubbles ── */
+.card-enter {
+  animation: scaleIn 280ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Staggered reveal for product cards */
+.card-enter:nth-child(1)  { animation-delay: 0ms; }
+.card-enter:nth-child(2)  { animation-delay: 60ms; }
+.card-enter:nth-child(3)  { animation-delay: 120ms; }
+.card-enter:nth-child(4)  { animation-delay: 180ms; }
+.card-enter:nth-child(5)  { animation-delay: 240ms; }
+.card-enter:nth-child(6)  { animation-delay: 300ms; }
+.card-enter:nth-child(7)  { animation-delay: 360ms; }
+.card-enter:nth-child(8)  { animation-delay: 420ms; }
+.card-enter:nth-child(9)  { animation-delay: 480ms; }
+.card-enter:nth-child(10) { animation-delay: 540ms; }
+
+/* ══════════════════════════════════════════════════════
+   CHAT BUBBLES — glassmorphism style
+══════════════════════════════════════════════════════ */
+/* ── AI bubble ── */
 .ai-bubble {
   position: relative;
-  background-color: #ffffff;
-  color: #1a2744;
+  background-color: #1a2744;
+  /* !important overrides the hardcoded style={{ color: NAVY }} in Scenario pages */
+  color: #e8f0ff !important;
   padding: 10px 20px;
-  max-width: 480px;
+  max-width: 520px;
   border-radius: 25px;
   font-size: 0.875rem;
-  line-height: 24px;
+  line-height: 1.6;
   word-wrap: break-word;
+  font-family: "DM Sans", sans-serif;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.25);
 }
 
-.ai-bubble::before, .ai-bubble::after {
+/* override any child text that inherits the hardcoded NAVY colour */
+.ai-bubble p,
+.ai-bubble span,
+.ai-bubble div {
+  color: inherit !important;
+}
+
+/* iPhone-style left tail */
+.ai-bubble::before {
   content: "";
   position: absolute;
   bottom: 0;
-  height: 25px;
-}
-
-.ai-bubble::before {
   left: -7px;
   width: 20px;
-  background-color: #ffffff;
+  height: 25px;
+  background-color: #1a2744;
   border-bottom-right-radius: 16px 14px;
 }
 
+/* mask triangle — matches flat page background exactly */
 .ai-bubble::after {
-  left: -26px;
-  width: 26px;
-  background-color: var(--page-bg);
-  border-bottom-right-radius: 10px;
-}
-
-.user-bubble {
-  position: relative;
-  background-color: #1a2744;
-  color: #ffffff;
-  padding: 10px 20px;
-  max-width: 340px;
-  border-radius: 25px;
-  font-size: 0.875rem;
-  line-height: 24px;
-  word-wrap: break-word;
-}
-
-.user-bubble::before, .user-bubble::after {
   content: "";
   position: absolute;
   bottom: 0;
+  left: -26px;
+  width: 26px;
   height: 25px;
+  background-color: #edf2fb;
+  border-bottom-right-radius: 10px;
 }
 
+/* ── User bubble ── */
+.user-bubble {
+  position: relative;
+  background-color: #243560;
+  color: #ffffff;
+  padding: 10px 20px;
+  max-width: 380px;
+  border-radius: 25px;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  word-wrap: break-word;
+  font-family: "DM Sans", sans-serif;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.25);
+}
+
+/* iPhone-style right tail */
 .user-bubble::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
   right: -7px;
   width: 20px;
-  background-color: #1a2744;
+  height: 25px;
+  background-color: #243560;
   border-bottom-left-radius: 16px 14px;
 }
 
+/* mask triangle — matches flat page background exactly */
 .user-bubble::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
   right: -26px;
   width: 26px;
-  background-color: var(--page-bg);
+  height: 25px;
+  background-color: #edf2fb;
   border-bottom-left-radius: 10px;
 }
 
-/* ── Mobile: sidebar becomes a top bar ── */
+/* ══════════════════════════════════════════════════════
+   PRODUCT CARDS
+══════════════════════════════════════════════════════ */
+.product-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  transition: transform 0.25s cubic-bezier(0.22,1,0.36,1),
+              box-shadow 0.25s cubic-bezier(0.22,1,0.36,1),
+              border-color 0.2s ease;
+  overflow: hidden;
+}
+
+.product-card:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: var(--shadow-card), 0 16px 48px rgba(59,107,255,0.15);
+  border-color: rgba(59,107,255,0.30);
+}
+
+.product-card.selected {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-card), 0 0 0 2px var(--accent), 0 8px 32px var(--accent-glow);
+}
+
+/* Score badge */
+.score-badge {
+  font-family: "Syne", sans-serif;
+  font-weight: 800;
+  font-size: 1.5rem;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ══════════════════════════════════════════════════════
+   CATEGORY PILL BUTTONS
+══════════════════════════════════════════════════════ */
+.category-pill {
+  background: var(--bg-glass);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-glass);
+  border-radius: 999px;
+  padding: 10px 20px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: "DM Sans", sans-serif;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.22,1,0.36,1);
+  box-shadow: var(--shadow-soft);
+}
+
+.category-pill:hover {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+  box-shadow: 0 4px 20px var(--accent-glow);
+  transform: translateY(-2px);
+}
+
+.category-pill.active {
+  background: linear-gradient(135deg, var(--accent), #2952d9);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 4px 20px var(--accent-glow);
+}
+
+/* ══════════════════════════════════════════════════════
+   CHAT INPUT BAR
+══════════════════════════════════════════════════════ */
+.chat-input-bar {
+  background: var(--bg-glass-strong);
+  backdrop-filter: blur(24px) saturate(200%);
+  -webkit-backdrop-filter: blur(24px) saturate(200%);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card), 0 0 0 0 var(--accent-glow);
+  transition: box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.chat-input-bar.focused {
+  border-color: rgba(59,107,255,0.50);
+  box-shadow: var(--shadow-card), 0 0 0 3px rgba(59,107,255,0.15);
+}
+
+.send-btn {
+  background: linear-gradient(135deg, var(--accent) 0%, #2952d9 100%);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.22,1,0.36,1),
+              box-shadow 0.2s ease,
+              opacity 0.2s ease;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px var(--accent-glow);
+}
+
+.send-btn:hover:not(:disabled) {
+  transform: scale(1.08);
+  box-shadow: 0 6px 20px var(--accent-glow);
+}
+
+.send-btn:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+.send-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ══════════════════════════════════════════════════════
+   ACTION BUTTONS (compare, replace etc.)
+══════════════════════════════════════════════════════ */
+.action-btn {
+  background: var(--bg-glass);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-glass);
+  border-radius: 999px;
+  padding: 8px 18px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.22,1,0.36,1);
+  box-shadow: var(--shadow-soft);
+  font-family: "DM Sans", sans-serif;
+  white-space: nowrap;
+}
+
+.action-btn:hover {
+  background: var(--navy);
+  color: white;
+  border-color: var(--navy);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(15,28,61,0.25);
+}
+
+/* Primary action variant */
+.action-btn-primary {
+  background: linear-gradient(135deg, var(--accent) 0%, #2952d9 100%);
+  border-color: transparent;
+  color: white;
+  box-shadow: 0 4px 16px var(--accent-glow);
+}
+
+.action-btn-primary:hover {
+  background: linear-gradient(135deg, #5580ff 0%, #3b65ff 100%);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 6px 24px var(--accent-glow);
+}
+
+/* ══════════════════════════════════════════════════════
+   COMPARISON TABLE
+══════════════════════════════════════════════════════ */
+.comparison-table-wrap {
+  background: var(--bg-glass);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border-glass);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+.comparison-table-wrap table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.8125rem;
+  font-family: "DM Sans", sans-serif;
+}
+
+.comparison-table-wrap th {
+  background: var(--navy);
+  color: white;
+  font-family: "Syne", sans-serif;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  padding: 12px 16px;
+  text-align: left;
+  letter-spacing: 0.01em;
+}
+
+.comparison-table-wrap td {
+  padding: 10px 16px;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+
+.comparison-table-wrap tr:last-child td { border-bottom: none; }
+
+.comparison-table-wrap tr:nth-child(even) td {
+  background: rgba(59,107,255,0.03);
+}
+
+.comparison-table-wrap tr:hover td {
+  background: rgba(59,107,255,0.06);
+}
+
+/* Section header rows */
+.comparison-table-wrap .section-header td {
+  background: rgba(15,28,61,0.06);
+  font-family: "Syne", sans-serif;
+  font-weight: 700;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary);
+  padding: 8px 16px;
+}
+
+/* ══════════════════════════════════════════════════════
+   LOADING SHIMMER
+══════════════════════════════════════════════════════ */
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--bg-card) 0%,
+    rgba(255,255,255,0.6) 50%,
+    var(--bg-card) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite;
+  border-radius: var(--radius-md);
+}
+
+.dark .shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(59,107,255,0.05) 0%,
+    rgba(59,107,255,0.12) 50%,
+    rgba(59,107,255,0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite;
+}
+
+/* Typing dots */
+@keyframes typing-dot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30%           { transform: translateY(-5px); opacity: 1; }
+}
+
+.typing-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: typing-dot 1.2s infinite;
+}
+
+.typing-dot:nth-child(2) { animation-delay: 0.15s; }
+.typing-dot:nth-child(3) { animation-delay: 0.30s; }
+
+/* ══════════════════════════════════════════════════════
+   DARK MODE TOGGLE
+══════════════════════════════════════════════════════ */
+.theme-toggle {
+  width: 42px;
+  height: 24px;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-glass);
+  border-radius: 999px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  flex-shrink: 0;
+}
+
+.theme-toggle.dark-active { background: var(--accent); border-color: var(--accent); }
+
+.theme-toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.20);
+}
+
+.theme-toggle.dark-active .theme-toggle-thumb {
+  transform: translateX(18px);
+}
+
+/* ══════════════════════════════════════════════════════
+   SCROLLBAR
+══════════════════════════════════════════════════════ */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ══════════════════════════════════════════════════════
+   DARK MODE OVERRIDES — Tables & Product Cards
+   These override hardcoded Tailwind classes in Scenario pages
+══════════════════════════════════════════════════════ */
+
+/* Comparison table wrapper */
+.dark .bg-white.rounded-xl {
+  background-color: #151f3d !important;
+  border-color: rgba(255,255,255,0.08) !important;
+}
+
+/* Table row alternating backgrounds */
+.dark table tr[style*="white"],
+.dark table tr[style*="#F8FAFC"] {
+  background-color: transparent !important;
+}
+
+/* Table cell text & borders */
+.dark table td,
+.dark table th {
+  border-color: rgba(255,255,255,0.07) !important;
+  color: rgba(232,238,255,0.85);
+}
+
+/* Table cell winner highlight — tone down in dark mode */
+.dark table td[style*="#dcfce7"] {
+  background-color: rgba(0,212,170,0.15) !important;
+  color: #6ee7d0 !important;
+}
+
+/* Expand/collapse button row */
+.dark table + button,
+.dark .bg-white.rounded-xl > button {
+  background-color: #151f3d !important;
+  color: rgba(232,238,255,0.6) !important;
+  border-color: rgba(255,255,255,0.07) !important;
+}
+
+/* Product cards (Scenario 2 & 3 recommendation cards) */
+.dark .bg-white.rounded-xl.w-full,
+.dark .bg-white.rounded-xl.sm\:w-\[170px\],
+.dark div.bg-white.rounded-xl {
+  background-color: #151f3d !important;
+  border-color: rgba(255,255,255,0.08) !important;
+}
+
+/* Card rank header strip */
+.dark .bg-white.rounded-xl .h-8 {
+  opacity: 0.9;
+}
+
+/* Card text colors */
+.dark .bg-white.rounded-xl p,
+.dark .bg-white.rounded-xl span {
+  color: rgba(232,238,255,0.80);
+}
+
+.dark .bg-white.rounded-xl .text-gray-500 {
+  color: rgba(232,238,255,0.50) !important;
+}
+
+.dark .bg-white.rounded-xl .text-gray-400 {
+  color: rgba(232,238,255,0.40) !important;
+}
+
+.dark .bg-white.rounded-xl .border-gray-100 {
+  border-color: rgba(255,255,255,0.07) !important;
+}
+
+/* Chat input in dark mode */
+.dark input.bg-white {
+  background-color: #1e2d52 !important;
+  color: #e8eeff !important;
+}
+
+.dark input.bg-gray-200 {
+  background-color: #151f3d !important;
+  color: rgba(232,238,255,0.35) !important;
+}
+
+/* Send button disabled state in dark mode */
+.dark button.bg-gray-300 {
+  background-color: #1e2d52 !important;
+  color: rgba(232,238,255,0.30) !important;
+}
+
+/* ══════════════════════════════════════════════════════
+   LIGHT-MODE CARD & TABLE OVERRIDES
+   Match card borders and action buttons to bubble colour (#1a2744)
+══════════════════════════════════════════════════════ */
+
+/* Product card outer border → bubble colour */
+.bg-white.rounded-xl.overflow-hidden.shadow-sm.border.border-gray-100,
+.bg-white.rounded-xl.overflow-hidden.shadow-sm.border.border-gray-200 {
+  border-color: rgba(26, 39, 68, 0.20) !important;
+}
+
+/* Table wrapper border */
+.bg-white.rounded-xl.overflow-hidden.shadow-sm.min-w-\[600px\].border.border-gray-200 {
+  border-color: rgba(26, 39, 68, 0.20) !important;
+}
+
+/* Inner divider lines inside cards */
+.border-gray-100 {
+  border-color: rgba(26, 39, 68, 0.10) !important;
+}
+
+/* Table row borders */
+.border-gray-200 {
+  border-color: rgba(26, 39, 68, 0.12) !important;
+}
+
+/* ── Product name inside recommendation cards ──
+   Targets the <p> / <span> with font-semibold text-sm that holds
+   the brand + model name in Scenario2 and Scenario3 cards.       */
+.bg-white.rounded-xl .font-semibold.text-sm.mb-1,
+.bg-white.rounded-xl .font-semibold.text-sm.leading-snug {
+  font-family: "Syne", sans-serif !important;
+  font-weight: 700 !important;
+  font-size: 1.0625rem !important;   /* 17px */
+  line-height: 1.3 !important;
+  letter-spacing: -0.01em;
+}
+
+/* Expand/collapse button at bottom of table */
+.bg-white.rounded-xl > button {
+  color: #1a2744 !important;
+  border-top-color: rgba(26, 39, 68, 0.12) !important;
+}
+
+.bg-white.rounded-xl > button:hover {
+  background-color: rgba(26, 39, 68, 0.04) !important;
+}
+
+/* ══════════════════════════════════════════════════════
+   MOBILE — sidebar becomes top bar
+══════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
   .sidebar {
     position: fixed !important;
-    top: 0;
-    left: 0;
+    top: 0; left: 0;
     width: 100% !important;
     min-width: unset !important;
     height: auto !important;
@@ -142,11 +731,12 @@
     justify-content: space-between !important;
     padding: 12px 20px !important;
     z-index: 50;
+    border-right: none !important;
+    border-bottom: 1px solid var(--sidebar-border) !important;
   }
 
   .main-content {
     margin-left: 0 !important;
     padding-top: 64px !important;
-    /* leave room for top bar */
   }
 }
