@@ -2,9 +2,7 @@
  * API client for the Electronics Comparison Assistant backend.
  */
 
-// In production (Vercel) VITE_API_BASE_URL = https://your-render-app.onrender.com/api
-// In local dev the Vite proxy rewrites /api → http://localhost:8000/api
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "/api";
+const API_BASE = "/api";
 
 export interface SessionStartResponse {
   session_id: string;

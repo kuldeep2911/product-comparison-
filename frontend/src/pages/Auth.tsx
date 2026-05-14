@@ -7,8 +7,6 @@ import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2, ShieldCheck } from "lucide-react";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "/api";
-
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [username, setUsername] = useState("");
@@ -33,7 +31,7 @@ export default function Auth() {
         formData.append("username", username);
         formData.append("password", password);
 
-        const res = await fetch(`${API_BASE}/auth/login`, {
+        const res = await fetch(`/api/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/x-www-form-urlencoded" },
           body: formData.toString(),
@@ -51,7 +49,7 @@ export default function Auth() {
       } else {
         if (password.length < 8) throw new Error("Password must be at least 8 characters");
 
-        const res = await fetch(`${API_BASE}/auth/register`, {
+        const res = await fetch(`/api/auth/register`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ username, email, password }),
