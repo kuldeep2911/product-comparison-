@@ -1,6 +1,9 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 
+// In Vite, you can export API_BASE from your api.ts and use it here.
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "/api";
+
 interface AuthUser {
   user_id: number;
   username: string;
@@ -29,7 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (token && userId && username) {
       // Validate the token is still good by calling /me
-      fetch("/api/auth/me", {
+      fetch(`${API_BASE}/auth/me`, {
         headers: { Authorization: `Bearer ${token}` },
       })
         .then((res) => {
