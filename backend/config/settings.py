@@ -1,16 +1,13 @@
 """
 Application settings loaded from environment variables.
 """
-import os
 import secrets
 from pydantic_settings import BaseSettings
-from dotenv import load_dotenv
-
-load_dotenv()
 
 
 class Settings(BaseSettings):
-    # Database
+    # Database — either a full URL (Supabase/Render) OR individual parts (local dev)
+    DATABASE_URL: str = ""          # e.g. postgresql://user:pass@host:5432/db
     DB_HOST: str = "localhost"
     DB_PORT: int = 5432
     DB_USER: str = "postgres"
@@ -24,12 +21,15 @@ class Settings(BaseSettings):
     # App
     APP_ENV: str = "development"
     SECRET_KEY: str = "dev-secret-key"
+    # Comma-separated list of allowed origins.
+    # In production set this to your Vercel URL, e.g.:
+    #   CORS_ORIGINS=https://your-app.vercel.app
     CORS_ORIGINS: str = "http://localhost:8080,http://localhost:3000,http://localhost:5173"
 
     # JWT Auth
-    JWT_SECRET_KEY: str = secrets.token_urlsafe(32)  # Will be overridden by .env in prod
+    JWT_SECRET_KEY: str = secrets.token_urlsafe(32)  # Overridden by .env in prod
     JWT_ALGORITHM: str = "HS256"
-    JWT_EXPIRE_DAYS: int = 30  # Long-lived like ChatGPT (30 days)
+    JWT_EXPIRE_DAYS: int = 30  # Long-lived like ChatGPT
 
     @property
     def cors_origin_list(self) -> list[str]:
