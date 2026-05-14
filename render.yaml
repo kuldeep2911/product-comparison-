@@ -24,3 +24,5 @@ services:
         value: production
       - key: CORS_ORIGINS
         sync: false          # paste your Vercel URL here after deploying frontend
+      - key: PYTHON_VERSION
+        value: "3.11.9"      # Enforce a stable Python version to get pre-built wheels
