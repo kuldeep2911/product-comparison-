@@ -14,7 +14,7 @@ from config.settings import settings
 logger = logging.getLogger(__name__)
 
 # Prefer a full DATABASE_URL if provided (Supabase / Render inject this)
-_raw_url = os.getenv("DATABASE_URL", "")
+_raw_url = os.getenv("DATABASE_URL", "").strip().replace("\n", "").replace("\r", "").replace('"', "")
 
 if _raw_url:
     # Supabase / Render provide postgres:// — SQLAlchemy needs postgresql://
