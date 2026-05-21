@@ -806,10 +806,6 @@
     font-size: 0.8125rem;
   }
 
-  /* Comparison table — enable horizontal scroll */
-  .chat-element .bg-white.rounded-xl.overflow-hidden.shadow-sm {
-    min-width: unset !important;
-  }
 
   /* Action buttons — wrap nicely on small screens */
   .chat-element.flex.flex-wrap.gap-2 {
