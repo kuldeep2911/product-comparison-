@@ -162,6 +162,32 @@ const Index = () => {
             </button>
           ))}
         </div>
+
+        {/* Supported Data Info Banner */}
+        <div style={{
+          marginTop: "32px",
+          padding: "12px 16px",
+          background: "rgba(59, 107, 255, 0.05)",
+          border: "1px solid rgba(59, 107, 255, 0.1)",
+          borderRadius: "12px",
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
+          textAlign: "left",
+          width: "100%",
+          animation: "fadeSlideUp 400ms cubic-bezier(0.22,1,0.36,1) 400ms both",
+        }}>
+          <span style={{ fontSize: "1.1rem", opacity: 0.8 }}>ℹ️</span>
+          <p style={{
+            margin: 0,
+            fontFamily: "DM Sans, sans-serif",
+            fontSize: "0.8125rem",
+            color: "var(--text-secondary)",
+            lineHeight: 1.5,
+          }}>
+            <strong>Currently Supported:</strong> We currently have data for mobiles, tablets, and watches from <strong>Apple, Samsung, Xiaomi, and Oppo</strong> only.
+          </p>
+        </div>
       </div>
     </Layout>
   );
