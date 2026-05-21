@@ -133,6 +133,8 @@ def resolve_product_names(db: Session, names: list[str]) -> tuple[list[dict], di
 
 
 def search_products_by_filters(db: Session, category: str | None = None,
+                                brand: str | None = None,
+                                os: str | None = None,
                                 filters: dict[str, str] | None = None,
                                 budget: int | None = None,
                                 limit: int = 50) -> list[int]:
@@ -150,6 +152,16 @@ def search_products_by_filters(db: Session, category: str | None = None,
         where_clauses.append("(c.slug = :category OR LOWER(c.name) = :category_name)")
         params["category"] = category.strip().lower()
         params["category_name"] = category.strip().lower()
+
+    if brand:
+        joins.append("JOIN brands b_filter ON p.brand_id = b_filter.id")
+        where_clauses.append("LOWER(b_filter.name) = :brand_val")
+        params["brand_val"] = brand.strip().lower()
+
+    if os:
+        joins.append("JOIN product_features os_feat ON p.id = os_feat.product_id AND os_feat.feature_key IN ('os', 'platform_os', 'operating_system')")
+        where_clauses.append("LOWER(os_feat.feature_value_text) LIKE :os_val")
+        params["os_val"] = f"%{os.strip().lower()}%"
 
     # Feature filters
     filter_idx = 0

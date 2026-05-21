@@ -23,6 +23,8 @@ class InterpretedQuery(BaseModel):
     intent: str = Field(default="unknown", description="compare, recommend, category_browse, spec_question, follow_up, greeting")
     product_names: list[str] = Field(default_factory=list, description="Product names mentioned")
     category: Optional[str] = None
+    brand: Optional[str] = None
+    os: Optional[str] = None
     budget: Optional[int] = None
     use_case: Optional[str] = None
     filters: dict[str, str] = Field(default_factory=dict)
@@ -45,6 +47,10 @@ def interpret_query(user_message: str, context: dict | None = None) -> Interpret
             context_str += f"\nCurrent use case: {context['use_case']}"
         if context.get("budget"):
             context_str += f"\nCurrent budget: {context['budget']}"
+        if context.get("brand"):
+            context_str += f"\nCurrent brand: {context['brand']}"
+        if context.get("os"):
+            context_str += f"\nCurrent OS: {context['os']}"
 
     prompt = f"""You are an electronics assistant query parser.
 Analyze the user message and extract structured information.
@@ -58,7 +64,9 @@ Return a JSON object with these fields:
   "intent": "compare" | "recommend" | "category_browse" | "spec_question" | "follow_up" | "greeting",
   "product_names": ["product name 1", "product name 2"],
   "category": "mobile" | "tablet" | "watch" | null,
-  "budget": integer or null (ALWAYS convert to USD. If user mentions rupees, divide by 85 to get USD. E.g. 50000 rupees -> 588),
+  "brand": "apple" | "samsung" | "xiaomi" | "google" | "oneplus" | null,
+  "os": "android" | "ios" | null,
+  "budget": integer or null (Extract the exact number the user mentions, e.g. 50000),
   "use_case": "gaming" | "camera" | "battery_life" | "multimedia" | "compact" | "balanced" | "productivity" | "value_for_money" | null,
   "filters": {{"feature_key": ">value"}},
   "follow_up_type": "spec_question" | "refine_filter" | "replace_product" | "general" | null,
@@ -71,7 +79,9 @@ Rules:
 - If user asks to list/browse a broad product catalog without looking for recommendations (e.g. "show me all tablets"), set mode="category_compare", intent="category_browse". Do NOT use this for "web browsing" use-cases.
 - If there is prior context and the user asks about specs (e.g. "which has better battery?"), set mode="follow_up", intent="spec_question"
 - If user wants to refine results, set follow_up_type="refine_filter"
-- If the user says they have no preference (e.g. "no", "any", "none" for brand or OS), DO NOT add it to filters. Only add actual constraints to filters.
+- If the user explicitly asks for a brand (e.g. "samsung", "apple"), set the "brand" field to lower case.
+- If the user explicitly asks for an OS (e.g. "android", "ios"), set the "os" field to lower case.
+- If the user says they have no preference (e.g. "no", "any", "none" for brand or OS), DO NOT add it to filters or brand/os. Only add actual constraints.
 - Extract product names exactly as user typed them
 - Only return raw JSON, no markdown formatting.
 
@@ -138,6 +148,25 @@ battery_capacity, display_size, refresh_rate, ram, storage, camera_mp, charging_
             if any(kw in msg_lower for kw in keywords):
                 result.category = cat
                 break
+
+    import re
+    if result.budget is None:
+        match = re.search(r'(?:budget|under|below|max)[^\d]*(\d{2,7})', msg_lower)
+        if match:
+            result.budget = int(match.group(1))
+
+    if not result.brand:
+        brands = ["samsung", "apple", "xiaomi", "google", "oneplus", "oppo", "vivo", "realme", "motorola"]
+        for b in brands:
+            if b in msg_lower:
+                result.brand = b
+                break
+
+    if not result.os:
+        if "android" in msg_lower:
+            result.os = "android"
+        elif "ios" in msg_lower or "iphone" in msg_lower or "apple" in msg_lower:
+            result.os = "ios"
 
     # Auto-detect use_case if LLM missed it
     if not result.use_case:

@@ -201,6 +201,14 @@ def _handle_recommendation(db: Session, session_id: str, interpreted: Interprete
     if interpreted.filters:
         final_filters.update(interpreted.filters)
 
+    if interpreted.brand:
+        final_filters["brand"] = interpreted.brand
+    if interpreted.os:
+        final_filters["os"] = interpreted.os
+
+    search_brand = final_filters.get("brand")
+    search_os = final_filters.get("os")
+
     clarifying_turns = final_filters.get("clarifying_turns", 0)
 
     # Skip turns if information is already known
@@ -219,8 +227,10 @@ def _handle_recommendation(db: Session, session_id: str, interpreted: Interprete
         if search_budget: known_info.append(f"Budget: {search_budget}")
         if search_use_case: known_info.append(f"Use Case: {search_use_case}")
         if search_category: known_info.append(f"Category: {search_category}")
+        if search_brand: known_info.append(f"Brand: {search_brand}")
+        if search_os: known_info.append(f"OS: {search_os}")
         for k, v in final_filters.items():
-            if k != "clarifying_turns":
+            if k not in ("clarifying_turns", "brand", "os"):
                 known_info.append(f"{k}: {v}")
                 
         from services.explanation_service import generate_next_clarifying_question
@@ -254,10 +264,12 @@ def _handle_recommendation(db: Session, session_id: str, interpreted: Interprete
             }
 
     # Search by filters — strip internal keys that aren't real product features
-    search_filters = {k: v for k, v in final_filters.items() if k not in ("clarifying_turns",)}
+    search_filters = {k: v for k, v in final_filters.items() if k not in ("clarifying_turns", "brand", "os")}
     product_ids = search_products_by_filters(
         db,
         category=search_category,
+        brand=search_brand,
+        os=search_os,
         filters=search_filters if search_filters else None,
         budget=search_budget,
         limit=1500,
@@ -316,9 +328,14 @@ def _handle_category_browse(db: Session, session_id: str, interpreted: Interpret
         }
 
     # Search within category
+    search_brand = interpreted.brand or context.get("filters", {}).get("brand")
+    search_os = interpreted.os or context.get("filters", {}).get("os")
+    
     product_ids = search_products_by_filters(
         db,
         category=interpreted.category,
+        brand=search_brand,
+        os=search_os,
         filters=interpreted.filters,
         budget=interpreted.budget,
         limit=1500,
@@ -334,12 +351,17 @@ def _handle_category_browse(db: Session, session_id: str, interpreted: Interpret
     top_results = ranked[:20]
     top_ids = [p["id"] for p in top_results]
 
+    final_filters = context.get("filters") or {}
+    if search_brand: final_filters["brand"] = search_brand
+    if search_os: final_filters["os"] = search_os
+
     chat_service.update_context(
         db, session_id,
         selected_products=top_ids,
         selected_category=interpreted.category,
         budget=interpreted.budget,
         use_case=interpreted.use_case,
+        filters=final_filters,
     )
     chat_service.update_session_mode(db, session_id, "category_compare")
 
@@ -447,6 +469,8 @@ def _context_to_dict(ctx) -> dict:
         "selected_category": ctx.selected_category,
         "filters": ctx.filters or {},
         "budget": ctx.budget,
+        "brand": (ctx.filters or {}).get("brand"),
+        "os": (ctx.filters or {}).get("os"),
         "use_case": ctx.use_case,
         "last_query": ctx.last_query,
     }
