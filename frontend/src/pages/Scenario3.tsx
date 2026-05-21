@@ -461,8 +461,13 @@ const Scenario3 = () => {
 
       return (
         <div key={msg.id} className="chat-element w-full">
-          <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
-          <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200" style={{ minWidth: "540px" }}>
+          <div style={{
+            overflowX: "scroll",
+            WebkitOverflowScrolling: "touch",
+            touchAction: "pan-x",
+            paddingBottom: "4px",
+          }}>
+          <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200" style={{ minWidth: "560px" }}>
             <table className="w-full border-collapse text-xs text-left">
               <thead>
                 <tr>

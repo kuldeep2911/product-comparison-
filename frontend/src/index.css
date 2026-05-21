@@ -107,14 +107,15 @@
 ────────────────────────────────────────────────────── */
 .layout-root {
   display: flex;
-  height: 100dvh;  /* dvh handles mobile browser chrome correctly */
-  overflow: hidden;
+  height: 100dvh;
+  /* clip = visual clipping only, does NOT block child scroll containers */
+  overflow: clip;
 }
 
 .layout-content {
   margin-left: 250px;
   min-height: 100dvh;
-  overflow: hidden;
+  overflow: clip;
 }
 
 .layout-center {
