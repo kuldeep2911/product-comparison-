@@ -102,6 +102,31 @@
   min-height: 100vh;
 }
 
+/* ──────────────────────────────────────────────────────
+   LAYOUT ROOT CLASSES
+────────────────────────────────────────────────────── */
+.layout-root {
+  display: flex;
+  height: 100dvh;  /* dvh handles mobile browser chrome correctly */
+  overflow: hidden;
+}
+
+.layout-content {
+  margin-left: 250px;
+  min-height: 100dvh;
+  overflow: hidden;
+}
+
+.layout-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+
 /* ══════════════════════════════════════════════════════
    GLASSMORPHISM CARDS
 ══════════════════════════════════════════════════════ */
@@ -193,11 +218,13 @@
   /* !important overrides the hardcoded style={{ color: NAVY }} in Scenario pages */
   color: #e8f0ff !important;
   padding: 10px 20px;
-  max-width: 520px;
+  max-width: min(520px, 85vw);
   border-radius: 25px;
   font-size: 0.875rem;
   line-height: 1.6;
   word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
   font-family: "DM Sans", sans-serif;
   box-shadow: 0 2px 12px rgba(0,0,0,0.25);
 }
@@ -239,11 +266,13 @@
   background-color: #243560;
   color: #ffffff;
   padding: 10px 20px;
-  max-width: 380px;
+  max-width: min(380px, 80vw);
   border-radius: 25px;
   font-size: 0.875rem;
   line-height: 1.6;
   word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-word;
   font-family: "DM Sans", sans-serif;
   box-shadow: 0 2px 12px rgba(0,0,0,0.25);
 }
@@ -717,26 +746,127 @@
 }
 
 /* ══════════════════════════════════════════════════════
-   MOBILE — sidebar becomes top bar
+   MOBILE — sidebar hidden, mobile top bar shown
 ══════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
-  .sidebar {
-    position: fixed !important;
-    top: 0; left: 0;
-    width: 100% !important;
-    min-width: unset !important;
-    height: auto !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    padding: 12px 20px !important;
-    z-index: 50;
-    border-right: none !important;
-    border-bottom: 1px solid var(--sidebar-border) !important;
+  /* Show mobile top bar, hide desktop sidebar */
+  .sidebar-desktop {
+    display: none !important;
   }
 
+  .sidebar-mobile {
+    display: flex !important;
+  }
+
+  /* Layout root: single column instead of side-by-side */
+  .layout-root {
+    flex-direction: column;
+    height: 100dvh;
+  }
+
+  /* Main content: no left margin, push down by top bar height */
+  .layout-content {
+    margin-left: 0 !important;
+    padding-top: 56px;
+    height: 100dvh;
+    min-height: unset;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Center layout on landing page */
+  .layout-center {
+    min-height: calc(100dvh - 56px);
+    padding-top: 24px;
+    padding-bottom: 24px;
+    align-items: flex-start;
+    overflow-y: auto;
+  }
+
+  /* fullHeight inner wrapper (chat pages) */
+  .layout-content .h-full {
+    height: calc(100dvh - 56px) !important;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Chat page container */
+  .layout-content .flex.flex-col.h-screen {
+    height: calc(100dvh - 56px) !important;
+  }
+
+  /* AI bubble — constrain to 85% of viewport width */
+  .ai-bubble {
+    max-width: 85vw;
+    padding: 10px 14px;
+    font-size: 0.8125rem;
+  }
+
+  /* User bubble */
+  .user-bubble {
+    max-width: 80vw;
+    padding: 10px 14px;
+    font-size: 0.8125rem;
+  }
+
+  /* Comparison table — enable horizontal scroll */
+  .chat-element .bg-white.rounded-xl.overflow-hidden.shadow-sm {
+    min-width: unset !important;
+  }
+
+  /* Action buttons — wrap nicely on small screens */
+  .chat-element.flex.flex-wrap.gap-2 {
+    gap: 8px;
+  }
+
+  .chat-element.flex.flex-wrap.gap-2 button {
+    font-size: 0.75rem;
+    padding: 8px 14px;
+  }
+
+  /* Input bar on mobile */
+  .absolute.bottom-0.left-0.right-0 {
+    padding: 10px 12px;
+  }
+
+  /* Chat scroll area — ensure it fills remaining space above input */
+  .flex-1.overflow-y-auto {
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* Reduce horizontal padding in chat feed */
+  .flex-1.overflow-y-auto.px-4 {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  /* Index landing page max-width on mobile */
+  .layout-center > div {
+    max-width: 100% !important;
+    width: 100%;
+  }
+
+  /* Hide old .main-content margin override if any */
   .main-content {
     margin-left: 0 !important;
-    padding-top: 64px !important;
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   MOBILE SMALL (≤ 480px) — extra tightening
+══════════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+  .ai-bubble {
+    max-width: 90vw;
+  }
+  .user-bubble {
+    max-width: 85vw;
+  }
+  /* Comparison table columns stay readable with horizontal scroll */
+  .chat-element > div {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }

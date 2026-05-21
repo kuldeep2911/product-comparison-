@@ -294,8 +294,9 @@ const Scenario2 = () => {
     }
 
     return (
-      <div key={msg.id} className="chat-element w-full overflow-x-auto">
-        <div className="bg-white rounded-xl overflow-hidden shadow-sm min-w-[600px] border border-gray-200">
+      <div key={msg.id} className="chat-element w-full">
+        <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+        <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200" style={{ minWidth: "540px" }}>
           <table className="w-full border-collapse text-xs text-left">
             <thead>
               <tr>
@@ -365,6 +366,7 @@ const Scenario2 = () => {
             </button>
           )}
         </div>
+        </div>
       </div>
     );
   };
@@ -399,7 +401,7 @@ const Scenario2 = () => {
       return (
         <div key={msg.id} className="chat-element w-full">
           {/* Top 10 card grid */}
-          <div className="flex gap-3 flex-wrap">
+          <div className="flex gap-3 flex-col sm:flex-row sm:flex-wrap">
             {msg.cards.slice(0, 10).map((card, i) => (
               <div key={card.id} className="bg-white rounded-xl w-full sm:w-[170px] overflow-hidden shadow-sm border border-gray-100">
                 <div className="h-8 flex items-center justify-center text-white text-xs font-bold" style={{
@@ -469,7 +471,7 @@ const Scenario2 = () => {
 
   return (
     <Layout fullHeight>
-      <div className="flex flex-col h-screen w-full relative">
+      <div className="flex flex-col w-full relative" style={{ height: "100dvh" }}>
         <div className="flex-1 overflow-y-auto px-4 pt-6 pb-28">
           <div className="max-w-6xl mx-auto space-y-4">
             {messages.map(renderMessage)}

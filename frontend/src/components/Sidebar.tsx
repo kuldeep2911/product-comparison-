@@ -1,7 +1,6 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, MessageSquare, Trash2, LogOut, User } from "lucide-react";
-import { useState } from "react";
+import { Plus, MessageSquare, Trash2, LogOut, User, Menu, X } from "lucide-react";
 import { getSessionsList, deleteSession, type SessionInfo } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -9,6 +8,7 @@ const Sidebar = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [sessions, setSessions] = useState<SessionInfo[]>([]);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   // Always enforce light mode
   useEffect(() => {
@@ -54,8 +54,12 @@ const Sidebar = () => {
     navigate("/auth");
   };
 
+  const closeDrawer = () => setDrawerOpen(false);
+
   return (
-    <div className="sidebar w-[250px] min-w-[250px] h-screen fixed left-0 top-0 flex flex-col py-6 px-4 z-50 overflow-hidden">
+    <>
+    {/* ── Desktop sidebar ── */}
+    <div className="sidebar sidebar-desktop w-[250px] min-w-[250px] h-screen fixed left-0 top-0 flex flex-col py-6 px-4 z-50 overflow-hidden">
       
       {/* Logo */}
       <div className="flex items-center mb-8 px-1">
@@ -248,6 +252,258 @@ const Sidebar = () => {
         </button>
       </div>
     </div>
+
+    {/* ── Mobile top bar ── */}
+    <div className="sidebar sidebar-mobile" style={{
+      display: "none",
+      position: "fixed",
+      top: 0, left: 0,
+      width: "100%",
+      height: "56px",
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      padding: "0 16px",
+      zIndex: 60,
+    }}>
+      {/* Logo */}
+      <span style={{
+        fontFamily: "Syne, sans-serif",
+        fontWeight: 800,
+        fontSize: "1.1rem",
+        color: "white",
+        letterSpacing: "-0.02em",
+      }}>
+        Assist<span style={{ color: "var(--accent)" }}>me</span>
+      </span>
+
+      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        {/* New chat */}
+        <button
+          onClick={() => { navigate("/"); setTimeout(() => window.location.reload(), 50); }}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+            background: "rgba(255,255,255,0.10)",
+            border: "1px solid rgba(255,255,255,0.15)",
+            borderRadius: "10px",
+            padding: "7px 14px",
+            color: "white",
+            fontSize: "0.8125rem",
+            fontWeight: 500,
+            cursor: "pointer",
+            fontFamily: "DM Sans, sans-serif",
+          }}
+        >
+          <Plus size={14} />
+          New chat
+        </button>
+
+        {/* Hamburger */}
+        <button
+          onClick={() => setDrawerOpen(true)}
+          style={{
+            background: "rgba(255,255,255,0.08)",
+            border: "1px solid rgba(255,255,255,0.12)",
+            borderRadius: "8px",
+            padding: "7px",
+            color: "white",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          <Menu size={18} />
+        </button>
+      </div>
+    </div>
+
+    {/* ── Mobile drawer overlay ── */}
+    {drawerOpen && (
+      <div
+        style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 100,
+          display: "flex",
+        }}
+      >
+        {/* Backdrop */}
+        <div
+          onClick={closeDrawer}
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: "rgba(0,0,0,0.55)",
+          }}
+        />
+
+        {/* Drawer panel */}
+        <div style={{
+          position: "relative",
+          width: "260px",
+          height: "100%",
+          background: "var(--sidebar-bg)",
+          display: "flex",
+          flexDirection: "column",
+          padding: "20px 16px",
+          boxShadow: "4px 0 32px rgba(0,0,0,0.35)",
+          overflowY: "auto",
+          zIndex: 101,
+        }}>
+          {/* Drawer header */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
+            <span style={{
+              fontFamily: "Syne, sans-serif",
+              fontWeight: 800,
+              fontSize: "1.1rem",
+              color: "white",
+              letterSpacing: "-0.02em",
+            }}>
+              Assist<span style={{ color: "var(--accent)" }}>me</span>
+            </span>
+            <button
+              onClick={closeDrawer}
+              style={{
+                background: "rgba(255,255,255,0.08)",
+                border: "none",
+                borderRadius: "8px",
+                padding: "6px",
+                color: "white",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <X size={16} />
+            </button>
+          </div>
+
+          {/* Recent chats */}
+          <p style={{
+            color: "rgba(255,255,255,0.35)",
+            fontSize: "0.6875rem",
+            fontWeight: 600,
+            textTransform: "uppercase",
+            letterSpacing: "0.1em",
+            padding: "0 8px",
+            marginBottom: "8px",
+            fontFamily: "Syne, sans-serif",
+          }}>
+            Recent Chats
+          </p>
+
+          {sessions.length === 0 && (
+            <p style={{ color: "rgba(255,255,255,0.25)", fontSize: "0.8125rem", padding: "8px", fontFamily: "DM Sans, sans-serif" }}>
+              No chats yet
+            </p>
+          )}
+
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "2px" }}>
+            {sessions.map(s => (
+              <div key={s.session_id} style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                borderRadius: "10px",
+              }}>
+                <button
+                  onClick={() => { handleSessionClick(s); closeDrawer(); }}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    textAlign: "left",
+                    flex: 1,
+                    padding: "9px 10px",
+                    color: "rgba(255,255,255,0.65)",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    fontFamily: "DM Sans, sans-serif",
+                    minWidth: 0,
+                  }}
+                >
+                  <MessageSquare size={14} style={{ flexShrink: 0, opacity: 0.6 }} />
+                  <span style={{ fontSize: "0.8125rem", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {s.title || "New Chat"}
+                  </span>
+                </button>
+                <button
+                  onClick={(e) => handleDeleteSession(e, s.session_id)}
+                  style={{
+                    padding: "5px",
+                    color: "rgba(255,255,255,0.40)",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    borderRadius: "6px",
+                    flexShrink: 0,
+                  }}
+                >
+                  <Trash2 size={13} />
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* User + logout */}
+          <div style={{
+            marginTop: "12px",
+            paddingTop: "14px",
+            borderTop: "1px solid rgba(255,255,255,0.08)",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "0 6px 10px" }}>
+              <div style={{
+                width: "30px",
+                height: "30px",
+                borderRadius: "50%",
+                background: "linear-gradient(135deg, var(--accent), #2952d9)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}>
+                <User size={13} color="white" />
+              </div>
+              <span style={{
+                fontSize: "0.8125rem",
+                color: "rgba(255,255,255,0.65)",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                fontFamily: "DM Sans, sans-serif",
+              }}>
+                {user?.username}
+              </span>
+            </div>
+
+            <button
+              onClick={() => { handleLogout(); closeDrawer(); }}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+                width: "100%",
+                padding: "9px 10px",
+                borderRadius: "10px",
+                color: "rgba(255,255,255,0.45)",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "0.8125rem",
+                fontFamily: "DM Sans, sans-serif",
+              }}
+            >
+              <LogOut size={15} />
+              Sign out
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 };
 

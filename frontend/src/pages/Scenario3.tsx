@@ -460,8 +460,9 @@ const Scenario3 = () => {
       }
 
       return (
-        <div key={msg.id} className="chat-element w-full overflow-x-auto">
-          <div className="bg-white rounded-xl overflow-hidden shadow-sm min-w-[600px] border border-gray-200">
+        <div key={msg.id} className="chat-element w-full">
+          <div style={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+          <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200" style={{ minWidth: "540px" }}>
             <table className="w-full border-collapse text-xs text-left">
               <thead>
                 <tr>
@@ -518,6 +519,7 @@ const Scenario3 = () => {
                 ))}
               </tbody>
             </table>
+          </div>
           </div>
         </div>
       );
@@ -589,7 +591,7 @@ const Scenario3 = () => {
 
   return (
     <Layout fullHeight>
-      <div className="flex flex-col h-screen w-full relative">
+      <div className="flex flex-col w-full relative" style={{ height: "100dvh" }}>
         <div className="flex-1 overflow-y-auto px-4 pt-6 pb-28">
           <div className="max-w-6xl mx-auto space-y-4">
             {messages.map(renderMessage)}
