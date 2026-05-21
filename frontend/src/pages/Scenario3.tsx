@@ -465,7 +465,7 @@ const Scenario3 = () => {
             WebkitOverflowScrolling: "touch",
             paddingBottom: "4px",
           }}>
-          <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200" style={{ minWidth: "560px", width: "max-content" }}>
+          <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200" style={{ minWidth: Math.max(560, 220 + products.length * 150) + "px" }}>
             <table className="w-full border-collapse text-xs text-left">
               <thead>
                 <tr>
