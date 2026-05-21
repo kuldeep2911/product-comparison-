@@ -1,4 +1,5 @@
 import logging
+# pyrefly: ignore [missing-import]
 from sqlalchemy import text
 from schemas.query_schema import StructuredQuery
 

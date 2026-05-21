@@ -765,36 +765,31 @@
     height: 100dvh;
   }
 
-  /* Main content: no left margin, push down by top bar height */
+  /* Main content: no left margin, sits below the 56px top bar */
   .layout-content {
     margin-left: 0 !important;
-    padding-top: 56px;
-    height: 100dvh;
+    margin-top: 56px;               /* push below fixed top bar (NOT padding-top) */
+    height: calc(100dvh - 56px);   /* exact remaining viewport height */
     min-height: unset;
-    overflow: hidden;
+    overflow: visible;              /* NEVER clip children — let them own their overflow */
     display: flex;
     flex-direction: column;
   }
 
-  /* Center layout on landing page */
+  /* Center layout on landing page — fills the full layout-content height */
   .layout-center {
-    min-height: calc(100dvh - 56px);
+    min-height: 100%;
     padding-top: 24px;
     padding-bottom: 24px;
     align-items: flex-start;
     overflow-y: auto;
   }
 
-  /* fullHeight inner wrapper (chat pages) */
+  /* fullHeight inner wrapper (chat pages) — h-full = 100% of layout-content */
   .layout-content .h-full {
-    height: calc(100dvh - 56px) !important;
+    height: 100% !important;
     display: flex;
     flex-direction: column;
-  }
-
-  /* Chat page container */
-  .layout-content .flex.flex-col.h-screen {
-    height: calc(100dvh - 56px) !important;
   }
 
   /* AI bubble — constrain to 85% of viewport width */
@@ -831,7 +826,7 @@
     padding: 10px 12px;
   }
 
-  /* Chat scroll area — ensure it fills remaining space above input */
+  /* Chat scroll area — must be able to shrink to allow flex layout */
   .flex-1.overflow-y-auto {
     flex: 1;
     min-height: 0;

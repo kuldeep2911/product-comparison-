@@ -340,10 +340,9 @@ const Scenario1 = () => {
       return (
         <div key={msg.id} className="chat-element w-full">
           <div style={{
-            overflowX: "scroll",
+            overflowX: "auto",
             WebkitOverflowScrolling: "touch",
-            touchAction: "pan-x",
-            paddingBottom: "4px",  /* shows scrollbar on desktop */
+            paddingBottom: "4px",
           }}>
           <div className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200" style={{ minWidth: "560px" }}>
             <table className="w-full border-collapse text-xs text-left">
@@ -460,7 +459,7 @@ const Scenario1 = () => {
 
   return (
     <Layout fullHeight>
-      <div className="flex flex-col w-full relative" style={{ height: "100dvh" }}>
+      <div className="flex flex-col w-full relative" style={{ height: "100%" }}>
         <div ref={chatContainerRef} className="flex-1 overflow-y-auto px-4 pt-6 pb-28">
           <div className="max-w-6xl mx-auto space-y-4">
             {messages.map(renderMessage)}
