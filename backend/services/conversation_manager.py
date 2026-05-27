@@ -83,7 +83,7 @@ def handle_message(db: Session, session_id: str, user_message: str) -> dict:
     elif interpreted.intent == "recommend":
         result = _handle_recommendation(db, session_id, interpreted, user_message, context_dict)
     elif interpreted.intent == "category_browse":
-        result = _handle_category_browse(db, session_id, interpreted, user_message)
+        result = _handle_category_browse(db, session_id, interpreted, user_message, context_dict)
     elif interpreted.intent == "spec_question" and context_dict.get("selected_products"):
         result = _handle_spec_question(db, session_id, interpreted, user_message, context_dict)
     elif interpreted.intent == "greeting":
@@ -316,7 +316,7 @@ def _handle_recommendation(db: Session, session_id: str, interpreted: Interprete
     }
 
 
-def _handle_category_browse(db: Session, session_id: str, interpreted: InterpretedQuery, user_message: str) -> dict:
+def _handle_category_browse(db: Session, session_id: str, interpreted: InterpretedQuery, user_message: str, context: dict) -> dict:
     """Handle category browsing requests."""
     if not interpreted.category:
         # List available categories
