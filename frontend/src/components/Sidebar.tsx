@@ -19,9 +19,18 @@ const Sidebar = () => {
   }, []);
 
   useEffect(() => {
-    if (user) {
-      getSessionsList().then(setSessions).catch(console.error);
-    }
+    const fetchSessions = () => {
+      if (user) {
+        getSessionsList().then(setSessions).catch(console.error);
+      }
+    };
+    
+    fetchSessions(); // Initial fetch
+
+    window.addEventListener("sessionCreated", fetchSessions);
+    return () => {
+      window.removeEventListener("sessionCreated", fetchSessions);
+    };
   }, [user]);
 
   const handleSessionClick = (session: SessionInfo) => {
@@ -72,7 +81,11 @@ const Sidebar = () => {
 
       {/* New chat button */}
       <button
-        onClick={() => { navigate("/"); }}
+        onClick={() => {
+          // Flush the current session into the list before navigating away
+          window.dispatchEvent(new Event("sessionCreated"));
+          navigate("/");
+        }}
         style={{
           display: "flex",
           alignItems: "center",
@@ -277,7 +290,11 @@ const Sidebar = () => {
       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
         {/* New chat */}
         <button
-          onClick={() => { navigate("/"); setTimeout(() => window.location.reload(), 50); }}
+          onClick={() => {
+            window.dispatchEvent(new Event("sessionCreated"));
+            navigate("/");
+            closeDrawer();
+          }}
           style={{
             display: "flex",
             alignItems: "center",

@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowUp, Loader2 } from "lucide-react";
-import Layout from "@/components/Layout";
 import {
   startSession, sendMessage, getCategories, getHistory, compareProducts,
   type ChatMessageResponse, type RecommendedProduct, type CategoryInfo, type ComparisonTable,
@@ -128,6 +127,7 @@ const Scenario3 = () => {
       try {
         const session = await startSession("category_compare");
         setSessionId(session.session_id);
+        window.dispatchEvent(new Event("sessionCreated"));
         const cats = await getCategories();
         setCategories(cats);
         addMessages([
@@ -297,6 +297,7 @@ const Scenario3 = () => {
       try {
         const session = await startSession("category_compare");
         setSessionId(session.session_id);
+        window.dispatchEvent(new Event("sessionCreated"));
         setSelectedCategory(null);
         setCurrentProducts([]);
         setSelectedProductIds([]);
@@ -602,7 +603,7 @@ const Scenario3 = () => {
   };
 
   return (
-    <Layout fullHeight>
+    <>
       <div className="flex flex-col w-full relative" style={{ height: "100%" }}>
         <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 pt-6 pb-28">
           <div className="max-w-6xl mx-auto space-y-4">
@@ -637,7 +638,7 @@ const Scenario3 = () => {
           </div>
         </div>
       </div>
-    </Layout>
+    </>
   );
 };
 

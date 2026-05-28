@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowUp, Loader2 } from "lucide-react";
-import Layout from "@/components/Layout";
 import { startSession, sendMessage, getHistory, type ChatMessageResponse, type RecommendedProduct, type ComparisonTable } from "@/lib/api";
 
 type MessageRole = "ai" | "user";
@@ -97,6 +96,7 @@ const Scenario2 = () => {
       try {
         const session = await startSession("purchase_advice");
         setSessionId(session.session_id);
+        window.dispatchEvent(new Event("sessionCreated"));
         addMessages([{
           id: nextId(), role: "ai",
           content: "I'd be happy to help you find the perfect product! Tell me what you're looking for.\n\nFor example:\n• \"best gaming phone under 50000\"\n• \"camera phone with good battery\"\n• \"lightweight phone for everyday use\"",
@@ -223,6 +223,7 @@ const Scenario2 = () => {
       try {
         const session = await startSession("purchase_advice");
         setSessionId(session.session_id);
+        window.dispatchEvent(new Event("sessionCreated"));
       } catch { }
       addMessages([{ id: nextId(), role: "user", content: "Start a new search" }]);
       await delay(300);
@@ -479,7 +480,7 @@ const Scenario2 = () => {
   };
 
   return (
-    <Layout fullHeight>
+    <>
       <div className="flex flex-col w-full relative" style={{ height: "100%" }}>
         <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 pt-6 pb-28">
           <div className="max-w-6xl mx-auto space-y-4">
@@ -514,7 +515,7 @@ const Scenario2 = () => {
           </div>
         </div>
       </div>
-    </Layout>
+    </>
   );
 };
 

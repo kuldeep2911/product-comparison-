@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import Layout from "@/components/Layout";
 
 const buttons = [
   {
@@ -26,7 +25,7 @@ const Index = () => {
   const navigate = useNavigate();
 
   return (
-    <Layout>
+    <>
       <div style={{
         display: "flex",
         flexDirection: "column",
@@ -189,7 +188,7 @@ const Index = () => {
           </p>
         </div>
       </div>
-    </Layout>
+    </>
   );
 };
 
