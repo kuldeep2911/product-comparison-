@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowUp, Loader2 } from "lucide-react";
 import Layout from "@/components/Layout";
 import { startSession, sendMessage, getHistory, type ChatMessageResponse, type ComparisonTable } from "@/lib/api";
@@ -21,6 +21,7 @@ const nextId = () => `s1-msg-${++msgId}`;
 
 const Scenario1 = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [inputActive, setInputActive] = useState(false);
@@ -53,7 +54,15 @@ const Scenario1 = () => {
   // Initialize session
   useEffect(() => {
     const init = async () => {
-      const urlParams = new URLSearchParams(window.location.search);
+      setMessages([]);
+      setSessionId(null);
+      setCurrentProductIds([]);
+      setCurrentProductNames([]);
+      setReplaceMode(null);
+      setAddMode(null);
+      setInputActive(false);
+
+      const urlParams = new URLSearchParams(location.search);
       const existingSessionId = urlParams.get('session');
 
       if (existingSessionId) {
@@ -104,7 +113,7 @@ const Scenario1 = () => {
     };
     init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [location.search]);
 
   useEffect(scrollToBottom, [messages, scrollToBottom]);
 

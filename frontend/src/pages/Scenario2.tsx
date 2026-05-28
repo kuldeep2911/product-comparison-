@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowUp, Loader2 } from "lucide-react";
 import Layout from "@/components/Layout";
 import { startSession, sendMessage, getHistory, type ChatMessageResponse, type RecommendedProduct, type ComparisonTable } from "@/lib/api";
@@ -25,6 +25,7 @@ const nextId = () => `s2-msg-${++msgId}`;
 
 const Scenario2 = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [inputActive, setInputActive] = useState(false);
@@ -50,7 +51,12 @@ const Scenario2 = () => {
 
   useEffect(() => {
     const init = async () => {
-      const urlParams = new URLSearchParams(window.location.search);
+      setMessages([]);
+      setSessionId(null);
+      setInputValue("");
+      setInputActive(false);
+
+      const urlParams = new URLSearchParams(location.search);
       const existingSessionId = urlParams.get('session');
 
       if (existingSessionId) {
@@ -102,7 +108,7 @@ const Scenario2 = () => {
     };
     init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [location.search]);
 
   useEffect(scrollToBottom, [messages, scrollToBottom]);
 

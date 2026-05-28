@@ -29,9 +29,6 @@ const Sidebar = () => {
     if (session.mode === "purchase_advice") path = "/scenario2";
     if (session.mode === "category_compare") path = "/scenario3";
     navigate(`${path}?session=${session.session_id}`);
-    if (window.location.pathname === path) {
-      setTimeout(() => window.location.reload(), 50);
-    }
   };
 
   const handleDeleteSession = async (e: React.MouseEvent, sessionId: string) => {
@@ -42,7 +39,6 @@ const Sidebar = () => {
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get("session") === sessionId) {
         navigate("/");
-        setTimeout(() => window.location.reload(), 50);
       }
     } catch (err) {
       console.error("Failed to delete", err);
@@ -76,7 +72,7 @@ const Sidebar = () => {
 
       {/* New chat button */}
       <button
-        onClick={() => { navigate("/"); setTimeout(() => window.location.reload(), 50); }}
+        onClick={() => { navigate("/"); }}
         style={{
           display: "flex",
           alignItems: "center",
