@@ -7,37 +7,37 @@
    DESIGN TOKENS
 ══════════════════════════════════════════════════════ */
 :root {
-  /* Light mode */
-  --bg-primary:       #edf2fb;
-  --bg-secondary:     #dde6f5;
+  /* Light mode - Copper & Slate Theme */
+  --bg-primary:       #FCFCFC;
+  --bg-secondary:     #F3E0D0;
   --bg-glass:         rgba(255, 255, 255, 0.55);
   --bg-glass-strong:  rgba(255, 255, 255, 0.80);
   --bg-card:          rgba(255, 255, 255, 0.70);
 
-  --sidebar-bg:       #0f1c3d;
+  --sidebar-bg:       #2D3748;
   --sidebar-border:   rgba(255,255,255,0.06);
   --sidebar-text:     rgba(255,255,255,0.75);
 
-  --navy:             #1a2744;
-  --navy-hover:       #2a3a5c;
-  --bubble-bg:        #1a2744;
-  --bubble-bg-user:   #243560;
-  --page-solid:       #edf2fb;
-  --accent:           #3b6bff;
-  --accent-glow:      rgba(59,107,255,0.35);
-  --accent-2:         #00d4aa;
-  --score-color:      #3b6bff;
+  --navy:             #2D3748;
+  --navy-hover:       #B87333;
+  --bubble-bg:        #2D3748;
+  --bubble-bg-user:   #B87333;
+  --page-solid:       #FCFCFC;
+  --accent:           #B87333;
+  --accent-glow:      rgba(184,115,51,0.35);
+  --accent-2:         #F3E0D0;
+  --score-color:      #B87333;
 
-  --text-primary:     #0f1c3d;
-  --text-secondary:   #4a5679;
-  --text-muted:       #8b96b8;
+  --text-primary:     #111827;
+  --text-secondary:   #6B7280;
+  --text-muted:       #9CA3AF;
 
-  --border:           rgba(15,28,61,0.10);
+  --border:           rgba(45,55,72,0.10);
   --border-glass:     rgba(255,255,255,0.45);
 
-  --shadow-soft:      0 4px 24px rgba(15,28,61,0.08);
-  --shadow-card:      0 8px 32px rgba(15,28,61,0.12), 0 2px 8px rgba(15,28,61,0.06);
-  --shadow-glow:      0 0 40px rgba(59,107,255,0.18);
+  --shadow-soft:      0 4px 24px rgba(45,55,72,0.08);
+  --shadow-card:      0 8px 32px rgba(45,55,72,0.12), 0 2px 8px rgba(45,55,72,0.06);
+  --shadow-glow:      0 0 40px rgba(184,115,51,0.18);
 
   --radius-sm:        10px;
   --radius-md:        16px;
@@ -47,21 +47,21 @@
   --page-bg:          var(--bg-primary);
 
   /* Shadcn tokens mapped */
-  --background:       210 40% 95%;
+  --background:       0 0% 99%;
   --foreground:       220 60% 15%;
-  --primary:          224 100% 55%;
+  --primary:          28 54% 46%;
   --primary-foreground: 0 0% 100%;
   --secondary:        210 50% 90%;
   --secondary-foreground: 220 60% 15%;
   --muted:            210 40% 93%;
   --muted-foreground: 215 25% 45%;
-  --accent-hsl:       210 40% 93%;
-  --accent-foreground: 220 60% 15%;
+  --accent-hsl:       28 54% 46%;
+  --accent-foreground: 0 0% 100%;
   --destructive:      0 80% 58%;
   --destructive-foreground: 0 0% 100%;
   --border-hsl:       214 30% 88%;
   --input:            214 30% 88%;
-  --ring:             224 100% 55%;
+  --ring:             28 54% 46%;
   --radius:           0.75rem;
   --card:             0 0% 100%;
   --card-foreground:  220 60% 15%;
@@ -98,7 +98,7 @@
    PAGE BACKGROUND — flat solid colour
 ══════════════════════════════════════════════════════ */
 .page-bg {
-  background-color: #edf2fb;
+  background-color: #FCFCFC;
   min-height: 100vh;
 }
 
@@ -215,9 +215,9 @@
 /* ── AI bubble ── */
 .ai-bubble {
   position: relative;
-  background-color: #1a2744;
+  background-color: #2D3748;
   /* !important overrides the hardcoded style={{ color: NAVY }} in Scenario pages */
-  color: #e8f0ff !important;
+  color: #F3E0D0 !important;
   padding: 10px 20px;
   max-width: min(520px, 85vw);
   border-radius: 25px;
@@ -245,7 +245,7 @@
   left: -7px;
   width: 20px;
   height: 25px;
-  background-color: #1a2744;
+  background-color: #2D3748;
   border-bottom-right-radius: 16px 14px;
 }
 
@@ -257,14 +257,14 @@
   left: -26px;
   width: 26px;
   height: 25px;
-  background-color: #edf2fb;
+  background-color: #FCFCFC;
   border-bottom-right-radius: 10px;
 }
 
 /* ── User bubble ── */
 .user-bubble {
   position: relative;
-  background-color: #243560;
+  background-color: #B87333;
   color: #ffffff;
   padding: 10px 20px;
   max-width: min(380px, 80vw);
@@ -286,7 +286,7 @@
   right: -7px;
   width: 20px;
   height: 25px;
-  background-color: #243560;
+  background-color: #B87333;
   border-bottom-left-radius: 16px 14px;
 }
 
@@ -298,7 +298,7 @@
   right: -26px;
   width: 26px;
   height: 25px;
-  background-color: #edf2fb;
+  background-color: #FCFCFC;
   border-bottom-left-radius: 10px;
 }
 
@@ -320,8 +320,8 @@
 
 .product-card:hover {
   transform: translateY(-4px) scale(1.01);
-  box-shadow: var(--shadow-card), 0 16px 48px rgba(59,107,255,0.15);
-  border-color: rgba(59,107,255,0.30);
+  box-shadow: var(--shadow-card), 0 16px 48px rgba(184,115,51,0.15);
+  border-color: rgba(184,115,51,0.30);
 }
 
 .product-card.selected {
@@ -367,7 +367,7 @@
 }
 
 .category-pill.active {
-  background: linear-gradient(135deg, var(--accent), #2952d9);
+  background: linear-gradient(135deg, var(--accent), #B87333);
   color: white;
   border-color: transparent;
   box-shadow: 0 4px 20px var(--accent-glow);
@@ -387,12 +387,12 @@
 }
 
 .chat-input-bar.focused {
-  border-color: rgba(59,107,255,0.50);
-  box-shadow: var(--shadow-card), 0 0 0 3px rgba(59,107,255,0.15);
+  border-color: rgba(184,115,51,0.50);
+  box-shadow: var(--shadow-card), 0 0 0 3px rgba(184,115,51,0.15);
 }
 
 .send-btn {
-  background: linear-gradient(135deg, var(--accent) 0%, #2952d9 100%);
+  background: linear-gradient(135deg, var(--accent) 0%, #B87333 100%);
   border-radius: 50%;
   width: 40px;
   height: 40px;
@@ -447,19 +447,19 @@
   color: white;
   border-color: var(--navy);
   transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(15,28,61,0.25);
+  box-shadow: 0 4px 16px rgba(45,55,72,0.25);
 }
 
 /* Primary action variant */
 .action-btn-primary {
-  background: linear-gradient(135deg, var(--accent) 0%, #2952d9 100%);
+  background: linear-gradient(135deg, var(--accent) 0%, #B87333 100%);
   border-color: transparent;
   color: white;
   box-shadow: 0 4px 16px var(--accent-glow);
 }
 
 .action-btn-primary:hover {
-  background: linear-gradient(135deg, #5580ff 0%, #3b65ff 100%);
+  background: linear-gradient(135deg, #F3E0D0 0%, #B87333 100%);
   color: white;
   border-color: transparent;
   box-shadow: 0 6px 24px var(--accent-glow);
@@ -506,16 +506,16 @@
 .comparison-table-wrap tr:last-child td { border-bottom: none; }
 
 .comparison-table-wrap tr:nth-child(even) td {
-  background: rgba(59,107,255,0.03);
+  background: rgba(184,115,51,0.03);
 }
 
 .comparison-table-wrap tr:hover td {
-  background: rgba(59,107,255,0.06);
+  background: rgba(184,115,51,0.06);
 }
 
 /* Section header rows */
 .comparison-table-wrap .section-header td {
-  background: rgba(15,28,61,0.06);
+  background: rgba(45,55,72,0.06);
   font-family: "Syne", sans-serif;
   font-weight: 700;
   font-size: 0.7rem;
@@ -543,9 +543,9 @@
 .dark .shimmer {
   background: linear-gradient(
     90deg,
-    rgba(59,107,255,0.05) 0%,
-    rgba(59,107,255,0.12) 50%,
-    rgba(59,107,255,0.05) 100%
+    rgba(184,115,51,0.05) 0%,
+    rgba(184,115,51,0.12) 50%,
+    rgba(184,115,51,0.05) 100%
   );
   background-size: 200% 100%;
   animation: shimmer 1.6s infinite;
@@ -700,7 +700,7 @@
 
 /* ══════════════════════════════════════════════════════
    LIGHT-MODE CARD & TABLE OVERRIDES
-   Match card borders and action buttons to bubble colour (#1a2744)
+   Match card borders and action buttons to bubble colour (#2D3748)
 ══════════════════════════════════════════════════════ */
 
 /* Product card outer border → bubble colour */
@@ -738,7 +738,7 @@
 
 /* Expand/collapse button at bottom of table */
 .bg-white.rounded-xl > button {
-  color: #1a2744 !important;
+  color: #2D3748 !important;
   border-top-color: rgba(26, 39, 68, 0.12) !important;
 }
 

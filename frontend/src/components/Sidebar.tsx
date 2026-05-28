@@ -97,8 +97,8 @@ const Sidebar = () => {
           fontFamily: "DM Sans, sans-serif",
         }}
         onMouseEnter={e => {
-          e.currentTarget.style.background = "rgba(59,107,255,0.25)";
-          e.currentTarget.style.borderColor = "rgba(59,107,255,0.5)";
+          e.currentTarget.style.background = "rgba(184,115,51,0.25)";
+          e.currentTarget.style.borderColor = "rgba(184,115,51,0.5)";
         }}
         onMouseLeave={e => {
           e.currentTarget.style.background = "rgba(255,255,255,0.10)";
@@ -130,10 +130,11 @@ const Sidebar = () => {
           </p>
         )}
 
-        {sessions.map(s => (
-          <div key={s.session_id} className="group relative flex items-center justify-between w-full" style={{
+        {sessions.map((s, i) => (
+          <div key={s.session_id} className="group relative flex items-center justify-between w-full opacity-0 animate-fade-in-up" style={{
             borderRadius: "10px",
             transition: "background 0.15s ease",
+            animationDelay: `${i * 60}ms`
           }}
             onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.07)")}
             onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
@@ -201,7 +202,7 @@ const Sidebar = () => {
             width: "30px",
             height: "30px",
             borderRadius: "50%",
-            background: "linear-gradient(135deg, var(--accent), #2952d9)",
+            background: "linear-gradient(135deg, var(--accent), #B87333)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -459,7 +460,7 @@ const Sidebar = () => {
                 width: "30px",
                 height: "30px",
                 borderRadius: "50%",
-                background: "linear-gradient(135deg, var(--accent), #2952d9)",
+                background: "linear-gradient(135deg, var(--accent), #B87333)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",

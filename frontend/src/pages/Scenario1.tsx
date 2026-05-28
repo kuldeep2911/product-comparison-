@@ -242,7 +242,7 @@ const Scenario1 = () => {
     if (msg.type === "loading") {
       return (
         <div key={msg.id} className="chat-element flex justify-start">
-          <div className="ai-bubble flex items-center gap-2" style={{ color: "#1a2744" }}>
+          <div className="ai-bubble flex items-center gap-2" style={{ color: "#2D3748" }}>
             <Loader2 className="animate-spin" size={16} />
             <span className="text-sm">Thinking...</span>
           </div>
@@ -347,10 +347,10 @@ const Scenario1 = () => {
             <table className="w-full border-collapse text-xs text-left">
               <thead>
                 <tr>
-                  <th className="px-3 py-3 w-[100px]" style={{ backgroundColor: "#1a2744" }}></th>
-                  <th className="px-3 py-3 w-[120px]" style={{ backgroundColor: "#1a2744" }}></th>
+                  <th className="px-3 py-3 w-[100px]" style={{ backgroundColor: "#2D3748" }}></th>
+                  <th className="px-3 py-3 w-[120px]" style={{ backgroundColor: "#2D3748" }}></th>
                   {products.map((p) => (
-                    <th key={p.id} className="px-3 py-3 text-center text-white" style={{ backgroundColor: "#1a2744" }}>
+                    <th key={p.id} className="px-3 py-3 text-center text-white" style={{ backgroundColor: "#2D3748" }}>
                       {p.brand} {p.name}
                     </th>
                   ))}
@@ -362,8 +362,8 @@ const Scenario1 = () => {
                     {group.fields.map((field, fIdx) => (
                       <tr 
                         key={`${field.section}-${field.name}`}
-                        style={{ backgroundColor: fIdx % 2 === 0 ? "white" : "#F8FAFC" }}
-                        className="border-b border-gray-200 last:border-b-0"
+                        style={{ backgroundColor: fIdx % 2 === 0 ? "white" : "#F8FAFC", animationDelay: `${fIdx * 40}ms` }}
+                        className="border-b border-gray-200 last:border-b-0 opacity-0 animate-fade-in-up"
                       >
                         {fIdx === 0 && (
                           <td 
@@ -374,7 +374,7 @@ const Scenario1 = () => {
                             {group.section}
                           </td>
                         )}
-                        <td className="px-3 py-2.5 font-semibold align-top border-r border-gray-200" style={{ color: "#1a2744" }}>
+                        <td className="px-3 py-2.5 font-semibold align-top border-r border-gray-200" style={{ color: "#2D3748" }}>
                           {field.displayName}
                         </td>
                         {products.map((p, pIdx) => {
@@ -385,8 +385,8 @@ const Scenario1 = () => {
                               key={p.id}
                               className="px-3 py-2.5 text-center align-top border-r border-gray-200 last:border-r-0"
                               style={{
-                                backgroundColor: isWinner ? "#dcfce7" : undefined,
-                                color: isWinner ? "#166534" : "#4B5563",
+                                backgroundColor: isWinner ? "#F3E0D0" : undefined,
+                                color: isWinner ? "#8A501C" : "#4B5563",
                                 fontWeight: isWinner ? 600 : undefined,
                               }}
                             >
@@ -405,7 +405,7 @@ const Scenario1 = () => {
               <button
                 onClick={() => toggleTable(msg.id)}
                 className="w-full px-3 py-3 text-xs text-center font-medium hover:bg-gray-50 transition-colors"
-                style={{ color: "#1a2744", borderTop: "1px solid #E5E7EB" }}
+                style={{ color: "#2D3748", borderTop: "1px solid #E5E7EB" }}
               >
                 {isExpanded
                   ? "▲ Show important features only"
@@ -426,7 +426,7 @@ const Scenario1 = () => {
               key={btn.action}
               onClick={() => handleActionButton(btn.action)}
               className="rounded-full px-5 py-2.5 text-sm font-medium text-white transition-colors"
-              style={{ backgroundColor: "#1a2744" }}
+              style={{ backgroundColor: "#2D3748" }}
               onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#2a3a5c")}
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "#1a2744")}
             >
@@ -440,7 +440,7 @@ const Scenario1 = () => {
     if (msg.role === "ai") {
       return (
         <div key={msg.id} className="chat-element flex justify-start">
-          <div className="ai-bubble" style={{ color: "#1a2744" }}>
+          <div className="ai-bubble" style={{ color: "#2D3748" }}>
             <p className="text-sm whitespace-pre-line">{msg.content}</p>
           </div>
         </div>
@@ -484,7 +484,7 @@ const Scenario1 = () => {
               disabled={!inputActive || !inputValue.trim() || loading}
               className={`rounded-full p-3 transition-colors ${inputActive && inputValue.trim() && !loading ? "text-white" : "bg-gray-300 text-gray-500 cursor-not-allowed"
                 }`}
-              style={inputActive && inputValue.trim() && !loading ? { backgroundColor: "#1a2744" } : undefined}
+              style={inputActive && inputValue.trim() && !loading ? { backgroundColor: "#2D3748" } : undefined}
             >
               {loading ? <Loader2 className="animate-spin" size={18} /> : <ArrowUp size={18} />}
             </button>

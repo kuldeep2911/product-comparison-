@@ -75,24 +75,24 @@ export default function Auth() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#0d1b3e] p-4">
+    <div className="flex min-h-screen items-center justify-center bg-[#FCFCFC] p-4">
       {/* Background decorative circles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-blue-600/10 blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-indigo-600/10 blur-3xl" />
+        <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full bg-[#B87333]/10 blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 rounded-full bg-[#2D3748]/10 blur-3xl" />
       </div>
 
-      <Card className="w-full max-w-md relative z-10 border-white/10 bg-white/5 backdrop-blur-xl text-white shadow-2xl">
+      <Card className="w-full max-w-md relative z-10 border-[#2D3748]/10 bg-white text-[#111827] shadow-xl">
         <CardHeader className="text-center space-y-3 pb-2">
           <div className="flex justify-center">
-            <div className="w-12 h-12 rounded-xl bg-blue-600/20 flex items-center justify-center border border-blue-500/30">
-              <ShieldCheck className="w-6 h-6 text-blue-400" />
+            <div className="w-12 h-12 rounded-xl bg-[#B87333]/15 flex items-center justify-center border border-[#B87333]/30">
+              <ShieldCheck className="w-6 h-6 text-[#B87333]" />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold text-white">
+          <CardTitle className="text-2xl font-bold text-[#111827]">
             {isLogin ? "Welcome back" : "Create an account"}
           </CardTitle>
-          <CardDescription className="text-white/50">
+          <CardDescription className="text-[#6B7280]">
             {isLogin
               ? "Sign in to access your personalised AI product assistant"
               : "Sign up to start getting smart product recommendations"}
@@ -102,7 +102,7 @@ export default function Auth() {
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4 pt-4">
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-white/70" htmlFor="username">Username</label>
+              <label className="text-sm font-medium text-[#111827]" htmlFor="username">Username</label>
               <Input
                 id="username"
                 required
@@ -110,13 +110,13 @@ export default function Auth() {
                 placeholder="johndoe"
                 value={username}
                 onChange={e => setUsername(e.target.value)}
-                className="bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-blue-400"
+                className="bg-transparent border-[#2D3748]/20 text-[#111827] placeholder:text-[#9CA3AF] focus:border-[#B87333]"
               />
             </div>
 
             {!isLogin && (
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-white/70" htmlFor="email">Email</label>
+                <label className="text-sm font-medium text-[#111827]" htmlFor="email">Email</label>
                 <Input
                   id="email"
                   type="email"
@@ -125,13 +125,13 @@ export default function Auth() {
                   placeholder="john@example.com"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  className="bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-blue-400"
+                  className="bg-transparent border-[#2D3748]/20 text-[#111827] placeholder:text-[#9CA3AF] focus:border-[#B87333]"
                 />
               </div>
             )}
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-white/70" htmlFor="password">Password</label>
+              <label className="text-sm font-medium text-[#111827]" htmlFor="password">Password</label>
               <Input
                 id="password"
                 type="password"
@@ -140,7 +140,7 @@ export default function Auth() {
                 placeholder={isLogin ? "••••••••" : "Min. 8 characters"}
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                className="bg-white/10 border-white/20 text-white placeholder:text-white/30 focus:border-blue-400"
+                className="bg-transparent border-[#2D3748]/20 text-[#111827] placeholder:text-[#9CA3AF] focus:border-[#B87333]"
               />
             </div>
           </CardContent>
@@ -149,7 +149,7 @@ export default function Auth() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold h-11 transition-all"
+              className="w-full bg-[#B87333] hover:bg-[#8A501C] text-white font-semibold h-11 transition-all"
             >
               {loading ? (
                 <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> {isLogin ? "Signing in…" : "Creating account…"}</>
@@ -161,7 +161,7 @@ export default function Auth() {
               type="button"
               variant="ghost"
               onClick={() => { setIsLogin(!isLogin); setPassword(""); }}
-              className="text-white/50 hover:text-white hover:bg-white/10 text-sm"
+              className="text-[#6B7280] hover:text-white hover:bg-white/10 text-sm"
             >
               {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
             </Button>

@@ -20,8 +20,8 @@ interface ChatMessage {
   tableData?: ComparisonTable;
 }
 
-const NAVY = "#1a2744";
-const NAVY_HOVER = "#2a3a5c";
+const NAVY = "#2D3748";
+const NAVY_HOVER = "#B87333";
 
 let msgId = 0;
 const nextId = () => `s3-msg-${++msgId}`;
@@ -338,8 +338,8 @@ const Scenario3 = () => {
                   key={cat.id}
                   onClick={() => handleCategorySelect(cat)}
                   className={`p-2 px-4 rounded-lg text-sm font-medium transition-colors border-2 ${selectedCategory === cat.name
-                      ? "border-blue-500 bg-blue-50 text-blue-700"
-                      : "border-transparent hover:bg-blue-50 text-gray-700"
+                      ? "border-[#B87333] bg-[#F3E0D0] text-[#8A501C]"
+                      : "border-transparent hover:bg-[#FAF5F0] text-gray-700"
                     }`}
                 >
                   {cat.name}
@@ -361,7 +361,7 @@ const Scenario3 = () => {
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
           {msg.cards.map((card, i) => (
-            <div key={card.id} className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
+            <div key={card.id} className="bg-[#FAF5F0] rounded-xl overflow-hidden shadow-sm border border-[#E6D5C9] transition-all duration-300 hover:-translate-y-1 hover:shadow-md cursor-pointer">
               <div className="h-8 flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: NAVY }}>
                 #{i + 1}
               </div>
@@ -484,8 +484,8 @@ const Scenario3 = () => {
                     {group.fields.map((field, fIdx) => (
                       <tr 
                         key={`${field.section}-${field.name}`}
-                        style={{ backgroundColor: fIdx % 2 === 0 ? "white" : "#F8FAFC" }}
-                        className="border-b border-gray-200 last:border-b-0"
+                        style={{ backgroundColor: fIdx % 2 === 0 ? "white" : "#F8FAFC", animationDelay: `${fIdx * 40}ms` }}
+                        className="border-b border-gray-200 last:border-b-0 opacity-0 animate-fade-in-up"
                       >
                         {fIdx === 0 && (
                           <td 
@@ -507,8 +507,8 @@ const Scenario3 = () => {
                               key={p.id}
                               className="px-3 py-2.5 text-center align-top border-r border-gray-200 last:border-r-0"
                               style={{
-                                backgroundColor: isWinner ? "#dcfce7" : undefined,
-                                color: isWinner ? "#166534" : "#4B5563",
+                                backgroundColor: isWinner ? "#F3E0D0" : undefined,
+                                color: isWinner ? "#8A501C" : "#4B5563",
                                 fontWeight: isWinner ? 600 : undefined,
                               }}
                             >

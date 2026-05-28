@@ -17,8 +17,8 @@ interface ChatMessage {
   productIds?: number[];
 }
 
-const NAVY = "#1a2744";
-const NAVY_HOVER = "#2a3a5c";
+const NAVY = "#2D3748";
+const NAVY_HOVER = "#B87333";
 
 let msgId = 0;
 const nextId = () => `s2-msg-${++msgId}`;
@@ -318,8 +318,8 @@ const Scenario2 = () => {
                   {group.fields.map((field, fIdx) => (
                     <tr
                       key={`${field.section}-${field.name}`}
-                      style={{ backgroundColor: fIdx % 2 === 0 ? "white" : "#F8FAFC" }}
-                      className="border-b border-gray-200 last:border-b-0"
+                      style={{ backgroundColor: fIdx % 2 === 0 ? "white" : "#F8FAFC", animationDelay: `${fIdx * 40}ms` }}
+                        className="border-b border-gray-200 last:border-b-0 opacity-0 animate-fade-in-up"
                     >
                       {fIdx === 0 && (
                         <td
@@ -341,8 +341,8 @@ const Scenario2 = () => {
                             key={p.id}
                             className="px-3 py-2.5 text-center align-top border-r border-gray-200 last:border-r-0"
                             style={{
-                              backgroundColor: isWinner ? "#dcfce7" : undefined,
-                              color: isWinner ? "#166534" : "#4B5563",
+                              backgroundColor: isWinner ? "#F3E0D0" : undefined,
+                              color: isWinner ? "#8A501C" : "#4B5563",
                               fontWeight: isWinner ? 600 : undefined,
                             }}
                           >
@@ -406,7 +406,7 @@ const Scenario2 = () => {
           {/* Top 10 card grid */}
           <div className="flex gap-3 flex-col sm:flex-row sm:flex-wrap">
             {msg.cards.slice(0, 10).map((card, i) => (
-              <div key={card.id} className="bg-white rounded-xl w-full sm:w-[170px] overflow-hidden shadow-sm border border-gray-100">
+              <div key={card.id} className="bg-[#FAF5F0] rounded-xl w-full sm:w-[170px] overflow-hidden shadow-sm border border-[#E6D5C9] transition-all duration-300 hover:-translate-y-1 hover:shadow-md cursor-pointer">
                 <div className="h-8 flex items-center justify-center text-white text-xs font-bold" style={{
                   backgroundColor: i < 3 ? NAVY : "#4B5563"
                 }}>

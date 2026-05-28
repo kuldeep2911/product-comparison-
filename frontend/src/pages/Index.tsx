@@ -112,8 +112,8 @@ const Index = () => {
               }}
               onMouseEnter={e => {
                 e.currentTarget.style.transform = "translateY(-2px)";
-                e.currentTarget.style.boxShadow = "var(--shadow-card), 0 8px 32px rgba(59,107,255,0.15)";
-                e.currentTarget.style.borderColor = "rgba(59,107,255,0.30)";
+                e.currentTarget.style.boxShadow = "var(--shadow-card), 0 8px 32px rgba(184,115,51,0.15)";
+                e.currentTarget.style.borderColor = "rgba(184,115,51,0.30)";
               }}
               onMouseLeave={e => {
                 e.currentTarget.style.transform = "translateY(0)";
@@ -125,7 +125,7 @@ const Index = () => {
                 fontSize: "1.5rem",
                 width: "44px",
                 height: "44px",
-                background: "linear-gradient(135deg, rgba(59,107,255,0.15), rgba(0,212,170,0.10))",
+                background: "linear-gradient(135deg, rgba(184,115,51,0.15), rgba(0,212,170,0.10))",
                 borderRadius: "12px",
                 display: "flex",
                 alignItems: "center",
@@ -167,8 +167,8 @@ const Index = () => {
         <div style={{
           marginTop: "32px",
           padding: "12px 16px",
-          background: "rgba(59, 107, 255, 0.05)",
-          border: "1px solid rgba(59, 107, 255, 0.1)",
+          background: "rgba(184,115,51, 0.05)",
+          border: "1px solid rgba(184,115,51, 0.1)",
           borderRadius: "12px",
           display: "flex",
           alignItems: "center",
